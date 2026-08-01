@@ -1,0 +1,10 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_l10n_ve_prestaciones_line_user,l10n.ve.prestaciones.line user,model_l10n_ve_prestaciones_line,hr_payroll.group_hr_payroll_user,1,0,0,0
+access_l10n_ve_prestaciones_line_manager,l10n.ve.prestaciones.line manager,model_l10n_ve_prestaciones_line,hr_payroll.group_hr_payroll_manager,1,1,1,1
+access_l10n_ve_payroll_provision_user,l10n.ve.payroll.provision user,model_l10n_ve_payroll_provision,hr_payroll.group_hr_payroll_user,1,0,0,0
+access_l10n_ve_payroll_provision_manager,l10n.ve.payroll.provision manager,model_l10n_ve_payroll_provision,hr_payroll.group_hr_payroll_manager,1,1,1,1
+access_l10n_ve_payroll_provision_line_user,l10n.ve.payroll.provision.line user,model_l10n_ve_payroll_provision_line,hr_payroll.group_hr_payroll_user,1,0,0,0
+access_l10n_ve_payroll_provision_line_manager,l10n.ve.payroll.provision.line manager,model_l10n_ve_payroll_provision_line,hr_payroll.group_hr_payroll_manager,1,1,1,1
+access_l10n_ve_liquidacion_wizard,l10n.ve.liquidacion.wizard,model_l10n_ve_liquidacion_wizard,hr_payroll.group_hr_payroll_manager,1,1,1,1
+access_l10n_ve_declaraciones_wizard,l10n.ve.declaraciones.wizard,model_l10n_ve_declaraciones_wizard,hr_payroll.group_hr_payroll_user,1,1,1,1
+access_l10n_ve_arc_wizard,l10n.ve.arc.wizard,model_l10n_ve_arc_wizard,hr_payroll.group_hr_payroll_user,1,1,1,1

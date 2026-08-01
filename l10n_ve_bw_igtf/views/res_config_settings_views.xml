@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.l10n.ve.bw.igtf</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <!-- Bloque propio: el bloque del módulo chart no tiene un id estable garantizado -->
+            <xpath expr="//app[@name='account']" position="inside">
+                <block title="Localización Venezuela — IGTF" name="l10n_ve_bw_igtf_settings">
+                    <setting id="l10n_ve_igtf_pct_setting"
+                             string="Alícuota IGTF"
+                             help="Porcentaje del Impuesto a las Grandes Transacciones Financieras aplicado a pagos y cobros por diarios en divisas (3% por defecto).">
+                        <div class="content-group">
+                            <div class="row mt8">
+                                <label for="l10n_ve_igtf_pct" string="Alícuota (%)" class="col-lg-4 o_light_label"/>
+                                <field name="l10n_ve_igtf_pct"/>
+                            </div>
+                        </div>
+                    </setting>
+                    <setting id="l10n_ve_igtf_accounts_setting"
+                             string="Cuentas IGTF"
+                             help="Cuenta de gasto para el IGTF causado por pagos propios en divisas y cuenta de pasivo para la percepción como Sujeto Pasivo Especial.">
+                        <div class="content-group">
+                            <div class="row mt8">
+                                <label for="l10n_ve_igtf_expense_account_id" string="Cuenta de gasto" class="col-lg-4 o_light_label"/>
+                                <field name="l10n_ve_igtf_expense_account_id"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_ve_igtf_perception_account_id" string="Cuenta de percepción" class="col-lg-4 o_light_label"/>
+                                <field name="l10n_ve_igtf_perception_account_id"/>
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

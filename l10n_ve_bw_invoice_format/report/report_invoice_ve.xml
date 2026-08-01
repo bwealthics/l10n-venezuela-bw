@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Todos los xpath están verificados contra
+         odoo/19.0/addons/account/views/report_invoice.xml. Se hereda por
+         posición (after/inside/replace del nodo hoja), nunca reemplazando
+         bloques completos del core. -->
+    <template id="report_invoice_document_ve"
+              inherit_id="account.report_invoice_document">
+
+        <!-- Fecha (y hora, si se conoce) en el formato del art. 7.6.
+             Se sustituye el nodo hoja de la fecha, no el bloque: el rótulo y
+             la columna del core se conservan. Fuera de Venezuela el helper
+             no se invoca porque la plantilla solo se instala en la
+             localización VE. -->
+        <xpath expr="//div[@name='invoice_date']/div[@t-field='o.invoice_date']"
+               position="replace">
+            <div t-out="o._l10n_ve_legal_datetime()">25-07-2026 03.14.07 p.m</div>
+        </xpath>
+
+        <!-- Nº de control asignado por la imprenta autorizada (art. 7.11) y
+             su fecha de asignación (art. 7.15). -->
+        <xpath expr="//div[@id='informations']" position="inside">
+            <div class="col" name="l10n_ve_control_number"
+                 t-if="o.l10n_ve_control_number">
+                <strong>Nº de Control</strong>
+                <div t-out="o.l10n_ve_control_number">00-00001234</div>
+            </div>
+            <div class="col" name="l10n_ve_control_date"
+                 t-if="o.l10n_ve_control_date">
+                <strong>Asignación del Nº de Control</strong>
+                <div t-out="o.l10n_ve_control_date.strftime('%d-%m-%Y')">25-07-2026</div>
+            </div>
+        </xpath>
+
+        <!-- Marca (E) de exentas, exoneradas y no sujetas, junto a la
+             descripción. La norma admite ponerla junto a la descripción o
+             junto al precio; se elige la descripción por ser la columna que
+             no se corta en los formatos angostos. -->
+        <xpath expr="//td[@name='account_invoice_line_name']" position="inside">
+            <span t-if="line._l10n_ve_is_exempt()" class="fw-bold"> (E)</span>
+        </xpath>
+
+        <!-- Datos de la imprenta autorizada (art. 7.14) y rango asignado.
+             La norma exige ≥6pt para la imprenta; 8pt queda holgado. -->
+        <xpath expr="//div[@id='total']" position="after">
+            <div class="row mt-3" name="l10n_ve_printer_block"
+                 t-if="o.company_id.l10n_ve_printer_name">
+                <div class="col-12" style="font-size:8pt;">
+                    <span>Imprenta autorizada: </span>
+                    <span t-field="o.company_id.l10n_ve_printer_name">Imprenta, C.A.</span>
+                    <span t-if="o.company_id.l10n_ve_printer_vat">
+                        — RIF <span t-field="o.company_id.l10n_ve_printer_vat">J-00000000-0</span>
+                    </span>
+                    <span t-if="o.company_id.l10n_ve_printer_auth_number">
+                        — Providencia Nº <span t-field="o.company_id.l10n_ve_printer_auth_number">SNAT/2024/0000</span>
+                    </span>
+                    <span t-if="o.company_id.l10n_ve_printer_auth_date">
+                        del <span t-out="o.company_id.l10n_ve_printer_auth_date.strftime('%d-%m-%Y')">01-01-2025</span>
+                    </span>
+                    <span t-if="o.company_id.l10n_ve_control_range_from and o.company_id.l10n_ve_control_range_to">
+                        — Rango de Nº de control asignado:
+                        <span t-field="o.company_id.l10n_ve_control_range_from">00-00000001</span>
+                        al <span t-field="o.company_id.l10n_ve_control_range_to">00-00005000</span>
+                    </span>
+                </div>
+            </div>
+        </xpath>
+    </template>
+</odoo>

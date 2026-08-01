@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_l10n_ve" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.l10n.ve.fiscal.books</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="point_of_sale.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='point_of_sale']" position="inside">
+                <block title="Localización Venezuela" name="l10n_ve_bw_fiscal_books">
+                    <setting string="Máquina fiscal"
+                             help="Nº de registro de la máquina fiscal asociada a este punto de venta; se indica en la fila diaria del Libro de Ventas (art. 77).">
+                        <field name="pos_l10n_ve_machine_serial"/>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

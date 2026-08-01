@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="input_type_bnoct_h" model="hr.payslip.input.type">
+        <field name="name">Horas de Bono Nocturno</field>
+        <field name="code">BNOCT_H</field>
+        <field name="is_quantity" eval="True"/>
+        <field name="country_id" ref="base.ve"/>
+        <field name="struct_ids" eval="[(4, ref('structure_ve_regular'))]"/>
+    </record>
+    <record id="input_type_hed_h" model="hr.payslip.input.type">
+        <field name="name">Horas Extras Diurnas</field>
+        <field name="code">HED_H</field>
+        <field name="is_quantity" eval="True"/>
+        <field name="country_id" ref="base.ve"/>
+        <field name="struct_ids" eval="[(4, ref('structure_ve_regular'))]"/>
+    </record>
+    <record id="input_type_hen_h" model="hr.payslip.input.type">
+        <field name="name">Horas Extras Nocturnas</field>
+        <field name="code">HEN_H</field>
+        <field name="is_quantity" eval="True"/>
+        <field name="country_id" ref="base.ve"/>
+        <field name="struct_ids" eval="[(4, ref('structure_ve_regular'))]"/>
+    </record>
+    <record id="input_type_feriado_d" model="hr.payslip.input.type">
+        <field name="name">Días Feriado/Descanso Trabajados</field>
+        <field name="code">FERIADO_D</field>
+        <field name="is_quantity" eval="True"/>
+        <field name="country_id" ref="base.ve"/>
+        <field name="struct_ids" eval="[(4, ref('structure_ve_regular'))]"/>
+    </record>
+    <record id="input_type_comis" model="hr.payslip.input.type">
+        <field name="name">Comisiones</field>
+        <field name="code">COMIS</field>
+        <field name="country_id" ref="base.ve"/>
+        <field name="struct_ids" eval="[(4, ref('structure_ve_regular'))]"/>
+    </record>
+    <record id="input_type_bono_ns" model="hr.payslip.input.type">
+        <field name="name">Bono No Salarial</field>
+        <field name="code">BONO_NS</field>
+        <field name="country_id" ref="base.ve"/>
+        <field name="struct_ids" eval="[(4, ref('structure_ve_regular'))]"/>
+    </record>
+    <record id="input_type_embargo" model="hr.payslip.input.type">
+        <field name="name">Retención Judicial (Manutención)</field>
+        <field name="code">EMBARGO</field>
+        <field name="country_id" ref="base.ve"/>
+        <field name="struct_ids" eval="[(4, ref('structure_ve_regular'))]"/>
+    </record>
+    <record id="input_type_util_d" model="hr.payslip.input.type">
+        <field name="name">Días de Utilidades</field>
+        <field name="code">UTIL_D</field>
+        <field name="is_quantity" eval="True"/>
+        <field name="country_id" ref="base.ve"/>
+        <field name="struct_ids" eval="[(4, ref('structure_ve_utilidades'))]"/>
+    </record>
+    <record id="input_type_vac_d" model="hr.payslip.input.type">
+        <field name="name">Días de Vacaciones a Pagar</field>
+        <field name="code">VAC_D</field>
+        <field name="is_quantity" eval="True"/>
+        <field name="country_id" ref="base.ve"/>
+        <field name="struct_ids" eval="[(4, ref('structure_ve_vacaciones'))]"/>
+    </record>
+    <record id="input_type_bvac_d" model="hr.payslip.input.type">
+        <field name="name">Días de Bono Vacacional</field>
+        <field name="code">BVAC_D</field>
+        <field name="is_quantity" eval="True"/>
+        <field name="country_id" ref="base.ve"/>
+        <field name="struct_ids" eval="[(4, ref('structure_ve_vacaciones'))]"/>
+    </record>
+    <record id="input_type_liq_prest_gar" model="hr.payslip.input.type">
+        <field name="name">Liquidación: Garantía de Prestaciones</field>
+        <field name="code">LIQ_PREST_GAR</field>
+        <field name="country_id" ref="base.ve"/>
+        <field name="struct_ids" eval="[(4, ref('structure_ve_liquidacion'))]"/>
+    </record>
+    <record id="input_type_liq_prest_trim" model="hr.payslip.input.type">
+        <field name="name">Liquidación: Garantía del Trimestre en Curso</field>
+        <field name="code">LIQ_PREST_TRIM</field>
+        <field name="country_id" ref="base.ve"/>
+        <field name="struct_ids" eval="[(4, ref('structure_ve_liquidacion'))]"/>
+    </record>
+    <record id="input_type_liq_prest_extra" model="hr.payslip.input.type">
+        <field name="name">Liquidación: Diferencia Retroactivo (art. 142.d)</field>
+        <field name="code">LIQ_PREST_EXTRA</field>
+        <field name="country_id" ref="base.ve"/>
+        <field name="struct_ids" eval="[(4, ref('structure_ve_liquidacion'))]"/>
+    </record>
+    <record id="input_type_liq_int" model="hr.payslip.input.type">
+        <field name="name">Liquidación: Intereses de Prestaciones</field>
+        <field name="code">LIQ_INT</field>
+        <field name="country_id" ref="base.ve"/>
+        <field name="struct_ids" eval="[(4, ref('structure_ve_liquidacion'))]"/>
+    </record>
+    <record id="input_type_liq_vac" model="hr.payslip.input.type">
+        <field name="name">Liquidación: Vacaciones Fraccionadas</field>
+        <field name="code">LIQ_VAC</field>
+        <field name="country_id" ref="base.ve"/>
+        <field name="struct_ids" eval="[(4, ref('structure_ve_liquidacion'))]"/>
+    </record>
+    <record id="input_type_liq_bvac" model="hr.payslip.input.type">
+        <field name="name">Liquidación: Bono Vacacional Fraccionado</field>
+        <field name="code">LIQ_BVAC</field>
+        <field name="country_id" ref="base.ve"/>
+        <field name="struct_ids" eval="[(4, ref('structure_ve_liquidacion'))]"/>
+    </record>
+    <record id="input_type_liq_util" model="hr.payslip.input.type">
+        <field name="name">Liquidación: Utilidades Fraccionadas</field>
+        <field name="code">LIQ_UTIL</field>
+        <field name="country_id" ref="base.ve"/>
+        <field name="struct_ids" eval="[(4, ref('structure_ve_liquidacion'))]"/>
+    </record>
+</odoo>

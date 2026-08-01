@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="payroll_provision_view_list" model="ir.ui.view">
+        <field name="name">l10n.ve.payroll.provision.list</field>
+        <field name="model">l10n.ve.payroll.provision</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="total" sum="Total"/>
+                <field name="move_id"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'posted'"
+                       decoration-info="state == 'draft'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="payroll_provision_view_form" model="ir.ui.view">
+        <field name="name">l10n.ve.payroll.provision.form</field>
+        <field name="model">l10n.ve.payroll.provision</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_compute" type="object" string="Calcular"
+                            class="btn-secondary" invisible="state != 'draft'"/>
+                    <button name="action_post" type="object" string="Contabilizar"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_cancel" type="object" string="Cancelar"
+                            invisible="state != 'posted'"/>
+                    <button name="action_draft" type="object" string="Volver a borrador"
+                            invisible="state != 'cancel'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,posted"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="date_from" readonly="state != 'draft'"/>
+                            <field name="date_to" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="move_id"/>
+                            <field name="total"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <field name="line_ids" readonly="state != 'draft'">
+                        <list editable="bottom">
+                            <field name="employee_id"/>
+                            <field name="concept"/>
+                            <field name="days"/>
+                            <field name="amount"/>
+                            <field name="currency_id" column_invisible="1"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_payroll_provision" model="ir.actions.act_window">
+        <field name="name">Provisiones LOTTT</field>
+        <field name="res_model">l10n.ve.payroll.provision</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Corrida mensual de provisiones laborales</p>
+            <p>Utilidades, vacaciones, bono vacacional, garantía trimestral de
+            prestaciones e intereses (LOTTT arts. 131, 142, 143, 190, 192).</p>
+        </field>
+    </record>
+</odoo>

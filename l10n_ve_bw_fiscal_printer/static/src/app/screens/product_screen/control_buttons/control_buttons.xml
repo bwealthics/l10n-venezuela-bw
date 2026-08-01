@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-name="l10n_ve_bw_fiscal_printer.ControlButtons"
+       t-inherit="point_of_sale.ControlButtons" t-inherit-mode="extension">
+        <xpath expr="//t[@t-if='props.showRemainingButtons']/div/button[hasclass('o_pricelist_button')]"
+               position="before">
+            <button t-if="pos.config.l10n_ve_bridge_url"
+                    t-att-class="buttonClass"
+                    t-on-click="() => this.clickReporteX()">
+                <i class="fa fa-print me-1"/>Reporte X
+            </button>
+            <button t-if="pos.config.l10n_ve_bridge_url"
+                    t-att-class="buttonClass"
+                    t-on-click="() => this.clickCierreZ()">
+                <i class="fa fa-lock me-1"/>Cierre Z
+            </button>
+            <!-- Solo si la caja tiene diario de contingencia asignado. El
+                 rótulo rojo permanente ES el control anti-abuso: mientras el
+                 modo esté activo se ve toda la jornada. -->
+            <button t-if="pos.config.l10n_ve_bridge_url and pos.config.l10n_ve_contingency_journal_id"
+                    t-att-class="pos.session.l10n_ve_contingency_start ? 'btn btn-danger' : buttonClass"
+                    t-on-click="() => this.clickContingencia()">
+                <i class="fa fa-exclamation-triangle me-1"/>
+                <t t-if="pos.session.l10n_ve_contingency_start">CONTINGENCIA ACTIVA</t>
+                <t t-else="">Contingencia</t>
+            </button>
+        </xpath>
+    </t>
+
+    <!-- Art. 49 PA 0071: si la caja lo configura, ocultar la pre-cuenta.
+         El botón Bill lo inyecta pos_restaurant sobre este mismo template;
+         nuestra extensión aplica después (dependemos de pos_restaurant). -->
+    <t t-name="l10n_ve_bw_fiscal_printer.ControlButtonsBill"
+       t-inherit="point_of_sale.ControlButtons" t-inherit-mode="extension">
+        <xpath expr="//button[@t-on-click='clickPrintBill']" position="attributes">
+            <attribute name="t-if">pos.config.iface_printbill and !pos.config.l10n_ve_hide_precuenta</attribute>
+        </xpath>
+    </t>
+
+</templates>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Se cuelga del bloque "Localización Venezuela" que ya crea
+         l10n_ve_bw_chart en Contabilidad > Configuración. -->
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.l10n.ve.bw.payroll</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="l10n_ve_bw_chart.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='l10n_ve_bw_venezuela']" position="inside">
+                <setting id="l10n_ve_bw_payroll_setting"
+                         string="Nómina Venezuela"
+                         company_dependent="1"
+                         help="Números patronales, clase de riesgo IVSS y días de utilidades usados por las reglas salariales.">
+                    <div class="content-group">
+                        <div class="row mt8">
+                            <label for="l10n_ve_ivss_employer_number" class="col-lg-5 o_light_label"/>
+                            <field name="l10n_ve_ivss_employer_number"/>
+                        </div>
+                        <div class="row">
+                            <label for="l10n_ve_faov_employer_number" class="col-lg-5 o_light_label"/>
+                            <field name="l10n_ve_faov_employer_number"/>
+                        </div>
+                        <div class="row">
+                            <label for="l10n_ve_inces_employer_number" class="col-lg-5 o_light_label"/>
+                            <field name="l10n_ve_inces_employer_number"/>
+                        </div>
+                        <div class="row">
+                            <label for="l10n_ve_inces_contributor" class="col-lg-5 o_light_label"/>
+                            <field name="l10n_ve_inces_contributor"/>
+                        </div>
+                        <div class="row">
+                            <label for="l10n_ve_ivss_risk" class="col-lg-5 o_light_label"/>
+                            <field name="l10n_ve_ivss_risk"/>
+                        </div>
+                        <div class="row">
+                            <label for="l10n_ve_utilidades_days" class="col-lg-5 o_light_label"/>
+                            <field name="l10n_ve_utilidades_days"/>
+                        </div>
+                        <div class="row">
+                            <label for="l10n_ve_prestaciones_mode" class="col-lg-5 o_light_label"/>
+                            <field name="l10n_ve_prestaciones_mode"/>
+                        </div>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="prestaciones_line_view_list" model="ir.ui.view">
+        <field name="name">l10n.ve.prestaciones.line.list</field>
+        <field name="model">l10n.ve.prestaciones.line</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="date"/>
+                <field name="employee_id"/>
+                <field name="concept"/>
+                <field name="days" optional="show"/>
+                <field name="daily_integral" optional="hide"/>
+                <field name="amount" sum="Saldo"/>
+                <field name="provision_id" optional="hide"/>
+                <field name="note" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="prestaciones_line_view_form" model="ir.ui.view">
+        <field name="name">l10n.ve.prestaciones.line.form</field>
+        <field name="model">l10n.ve.prestaciones.line</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="employee_id"/>
+                            <field name="date"/>
+                            <field name="concept"/>
+                        </group>
+                        <group>
+                            <field name="days"/>
+                            <field name="daily_integral"/>
+                            <field name="amount"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="note"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="prestaciones_line_view_search" model="ir.ui.view">
+        <field name="name">l10n.ve.prestaciones.line.search</field>
+        <field name="model">l10n.ve.prestaciones.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="employee_id"/>
+                <filter name="group_employee" string="Por trabajador"
+                        context="{'group_by': 'employee_id'}"/>
+                <filter name="group_concept" string="Por concepto"
+                        context="{'group_by': 'concept'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_prestaciones_line" model="ir.actions.act_window">
+        <field name="name">Prestaciones Sociales (art. 142-143)</field>
+        <field name="res_model">l10n.ve.prestaciones.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_group_employee': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Libro de garantía de prestaciones</p>
+            <p>Los abonos trimestrales, días adicionales e intereses los crea la
+            corrida de provisiones; los anticipos (máx. 75%) se registran aquí.</p>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.l10n.ve.bw.invoice.format</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='account']" position="inside">
+                <block title="Localización Venezuela — Imprenta Autorizada"
+                       name="l10n_ve_bw_printer_block">
+                    <setting id="l10n_ve_bw_printer_setting"
+                             string="Datos de la imprenta autorizada"
+                             company_dependent="1"
+                             help="Se imprimen en cada comprobante (PA 0071 arts. 30-31 y PA SNAT/2024/000102 art. 7.14). Los aporta el contrato con la imprenta, sea física o digital.">
+                        <div class="content-group">
+                            <div class="row mt8">
+                                <label for="l10n_ve_printer_name" string="Razón social" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_ve_printer_name"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_ve_printer_vat" string="RIF" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_ve_printer_vat"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_ve_printer_auth_number" string="Nº de Providencia" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_ve_printer_auth_number"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_ve_printer_auth_date" string="Fecha de la Providencia" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_ve_printer_auth_date"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_ve_control_range_from" string="Nº de control desde" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_ve_control_range_from"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_ve_control_range_to" string="Nº de control hasta" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_ve_control_range_to"/>
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

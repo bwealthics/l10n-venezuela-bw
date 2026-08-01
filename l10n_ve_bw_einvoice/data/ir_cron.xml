@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_cron_l10n_ve_edoc" model="ir.cron">
+        <field name="name">Imprenta digital VE: enviar y consultar documentos</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="state">code</field>
+        <field name="code">model._l10n_ve_edoc_cron()</field>
+        <field name="interval_number">5</field>
+        <field name="interval_type">minutes</field>
+        <!-- Inactivo de fábrica: se enciende cuando haya proveedor contratado
+             y autorización del SENIAT. Un cron que llama a una API sin
+             credenciales solo llena el log de errores. -->
+        <field name="active" eval="False"/>
+    </record>
+</odoo>

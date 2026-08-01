@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Definiciones de parámetros: estructurales, se actualizan con -u. -->
+    <data noupdate="0">
+        <record id="rule_parameter_minimum_wage" model="hr.rule.parameter">
+            <field name="name">Venezuela: Salario Mínimo mensual (Bs)</field>
+            <field name="code">l10n_ve_minimum_wage_ves</field>
+            <field name="country_id" ref="base.ve"/>
+            <field name="description">Salario mínimo nacional mensual en bolívares. Fija los topes de cotización IVSS (5 SM) y RPE (10 SM). Cambia por decreto presidencial en Gaceta Oficial.</field>
+        </record>
+        <record id="rule_parameter_cesta_ticket" model="hr.rule.parameter">
+            <field name="name">Venezuela: Cesta Ticket mensual (USD)</field>
+            <field name="code">l10n_ve_cesta_ticket_usd</field>
+            <field name="country_id" ref="base.ve"/>
+            <field name="description">Beneficio de alimentación mensual indexado en USD, pagadero en Bs a tasa BCV del día de pago (criterio TSJ-SCS 712/2024; anuncios ejecutivos).</field>
+        </record>
+        <record id="rule_parameter_imi_cepp_floor" model="hr.rule.parameter">
+            <field name="name">Venezuela: Ingreso Mínimo Integral / piso CEPP (USD)</field>
+            <field name="code">l10n_ve_imi_cepp_floor_usd</field>
+            <field name="country_id" ref="base.ve"/>
+            <field name="description">Ingreso Mínimo Integral Indexado: base mínima mensual por trabajador de la Contribución Especial de Protección de Pensiones (anuncios ejecutivos, patrón 1° de mayo).</field>
+        </record>
+        <record id="rule_parameter_ivss_emp_rate" model="hr.rule.parameter">
+            <field name="name">Venezuela: IVSS tasa trabajador</field>
+            <field name="code">l10n_ve_ivss_emp_rate</field>
+            <field name="country_id" ref="base.ve"/>
+            <field name="description">Cotización del trabajador al Seguro Social Obligatorio (LSS art. 66).</field>
+        </record>
+        <record id="rule_parameter_ivss_pat_rates" model="hr.rule.parameter">
+            <field name="name">Venezuela: IVSS tasas patronales por riesgo</field>
+            <field name="code">l10n_ve_ivss_pat_rates</field>
+            <field name="country_id" ref="base.ve"/>
+            <field name="description">Diccionario {clase de riesgo: tasa} del aporte patronal SSO. La clase la asigna el IVSS al inscribir la entidad (Forma 14-01).</field>
+        </record>
+        <record id="rule_parameter_ivss_cap_sm" model="hr.rule.parameter">
+            <field name="name">Venezuela: IVSS tope (salarios mínimos)</field>
+            <field name="code">l10n_ve_ivss_cap_sm</field>
+            <field name="country_id" ref="base.ve"/>
+        </record>
+        <record id="rule_parameter_rpe_emp_rate" model="hr.rule.parameter">
+            <field name="name">Venezuela: RPE tasa trabajador</field>
+            <field name="code">l10n_ve_rpe_emp_rate</field>
+            <field name="country_id" ref="base.ve"/>
+        </record>
+        <record id="rule_parameter_rpe_pat_rate" model="hr.rule.parameter">
+            <field name="name">Venezuela: RPE tasa patronal</field>
+            <field name="code">l10n_ve_rpe_pat_rate</field>
+            <field name="country_id" ref="base.ve"/>
+        </record>
+        <record id="rule_parameter_rpe_cap_sm" model="hr.rule.parameter">
+            <field name="name">Venezuela: RPE tope (salarios mínimos)</field>
+            <field name="code">l10n_ve_rpe_cap_sm</field>
+            <field name="country_id" ref="base.ve"/>
+        </record>
+        <record id="rule_parameter_faov_emp_rate" model="hr.rule.parameter">
+            <field name="name">Venezuela: FAOV tasa trabajador</field>
+            <field name="code">l10n_ve_faov_emp_rate</field>
+            <field name="country_id" ref="base.ve"/>
+            <field name="description">Ahorro obligatorio del trabajador (1/3 del 3% sobre salario integral, sin tope — LRPVH art. 33, G.O. 6.805 Ext. 2024).</field>
+        </record>
+        <record id="rule_parameter_faov_pat_rate" model="hr.rule.parameter">
+            <field name="name">Venezuela: FAOV tasa patronal</field>
+            <field name="code">l10n_ve_faov_pat_rate</field>
+            <field name="country_id" ref="base.ve"/>
+        </record>
+        <record id="rule_parameter_inces_emp_rate" model="hr.rule.parameter">
+            <field name="name">Venezuela: INCES ½% sobre utilidades (trabajador)</field>
+            <field name="code">l10n_ve_inces_emp_rate</field>
+            <field name="country_id" ref="base.ve"/>
+            <field name="description">Retención al trabajador sobre utilidades pagadas (art. 50 Decreto-Ley INCES 2014); enterar dentro de los 10 días siguientes al pago.</field>
+        </record>
+        <record id="rule_parameter_inces_pat_rate" model="hr.rule.parameter">
+            <field name="name">Venezuela: INCES 2% patronal</field>
+            <field name="code">l10n_ve_inces_pat_rate</field>
+            <field name="country_id" ref="base.ve"/>
+            <field name="description">Aporte patronal trimestral sobre salario normal, entidades con 5+ trabajadores (art. 49.1 Decreto-Ley INCES 2014). El devengo es mensual en nómina; el pago, trimestral en SIGAT.</field>
+        </record>
+        <record id="rule_parameter_cepp_pat_rate" model="hr.rule.parameter">
+            <field name="name">Venezuela: CEPP tasa patronal</field>
+            <field name="code">l10n_ve_cepp_pat_rate</field>
+            <field name="country_id" ref="base.ve"/>
+            <field name="description">Contribución Especial de Protección de las Pensiones: 9% del total de pagos (salariales y no salariales, incluida cesta ticket), piso IMI (Ley G.O. 6.806 Ext. 08-05-2024; Decreto 4.952). Forma 19 DPP mensual en SENIAT.</field>
+        </record>
+        <record id="rule_parameter_prestaciones_rate" model="hr.rule.parameter">
+            <field name="name">Venezuela: Tasa anual intereses prestaciones (%)</field>
+            <field name="code">l10n_ve_prestaciones_bcv_rate</field>
+            <field name="country_id" ref="base.ve"/>
+            <field name="description">Tasa PROMEDIO entre activa y pasiva que publica el BCV mensualmente (art. 143 LOTTT, garantía en contabilidad del patrono). Actualizar cada mes ANTES de la corrida de provisiones (bcv.org.ve &gt; Tasa de interés prestaciones sociales).</field>
+        </record>
+    </data>
+
+    <!-- Valores históricos con vigencia: semilla, la vida real se carga por
+         UI (un humano crea el valor nuevo cuando cambia la norma). -->
+    <data noupdate="1">
+        <record id="rule_parameter_minimum_wage_2022" model="hr.rule.parameter.value">
+            <field name="rule_parameter_id" ref="rule_parameter_minimum_wage"/>
+            <field name="parameter_value">130.0</field>
+            <field name="date_from" eval="datetime(2022, 3, 15).date()"/>
+        </record>
+        <record id="rule_parameter_cesta_ticket_2024" model="hr.rule.parameter.value">
+            <field name="rule_parameter_id" ref="rule_parameter_cesta_ticket"/>
+            <field name="parameter_value">40.0</field>
+            <field name="date_from" eval="datetime(2024, 5, 1).date()"/>
+        </record>
+        <record id="rule_parameter_imi_2024" model="hr.rule.parameter.value">
+            <field name="rule_parameter_id" ref="rule_parameter_imi_cepp_floor"/>
+            <field name="parameter_value">130.0</field>
+            <field name="date_from" eval="datetime(2024, 5, 16).date()"/>
+        </record>
+        <record id="rule_parameter_imi_2025" model="hr.rule.parameter.value">
+            <field name="rule_parameter_id" ref="rule_parameter_imi_cepp_floor"/>
+            <field name="parameter_value">160.0</field>
+            <field name="date_from" eval="datetime(2025, 5, 1).date()"/>
+        </record>
+        <record id="rule_parameter_imi_2026" model="hr.rule.parameter.value">
+            <field name="rule_parameter_id" ref="rule_parameter_imi_cepp_floor"/>
+            <field name="parameter_value">240.0</field>
+            <field name="date_from" eval="datetime(2026, 5, 1).date()"/>
+        </record>
+        <record id="rule_parameter_ivss_emp_rate_2012" model="hr.rule.parameter.value">
+            <field name="rule_parameter_id" ref="rule_parameter_ivss_emp_rate"/>
+            <field name="parameter_value">0.04</field>
+            <field name="date_from" eval="datetime(2012, 5, 1).date()"/>
+        </record>
+        <record id="rule_parameter_ivss_pat_rates_2012" model="hr.rule.parameter.value">
+            <field name="rule_parameter_id" ref="rule_parameter_ivss_pat_rates"/>
+            <field name="parameter_value">{'min': 0.09, 'med': 0.10, 'max': 0.11}</field>
+            <field name="date_from" eval="datetime(2012, 5, 1).date()"/>
+        </record>
+        <record id="rule_parameter_ivss_cap_sm_2012" model="hr.rule.parameter.value">
+            <field name="rule_parameter_id" ref="rule_parameter_ivss_cap_sm"/>
+            <field name="parameter_value">5</field>
+            <field name="date_from" eval="datetime(2012, 5, 1).date()"/>
+        </record>
+        <record id="rule_parameter_rpe_emp_rate_2005" model="hr.rule.parameter.value">
+            <field name="rule_parameter_id" ref="rule_parameter_rpe_emp_rate"/>
+            <field name="parameter_value">0.005</field>
+            <field name="date_from" eval="datetime(2005, 9, 27).date()"/>
+        </record>
+        <record id="rule_parameter_rpe_pat_rate_2005" model="hr.rule.parameter.value">
+            <field name="rule_parameter_id" ref="rule_parameter_rpe_pat_rate"/>
+            <field name="parameter_value">0.02</field>
+            <field name="date_from" eval="datetime(2005, 9, 27).date()"/>
+        </record>
+        <record id="rule_parameter_rpe_cap_sm_2005" model="hr.rule.parameter.value">
+            <field name="rule_parameter_id" ref="rule_parameter_rpe_cap_sm"/>
+            <field name="parameter_value">10</field>
+            <field name="date_from" eval="datetime(2005, 9, 27).date()"/>
+        </record>
+        <record id="rule_parameter_faov_emp_rate_2005" model="hr.rule.parameter.value">
+            <field name="rule_parameter_id" ref="rule_parameter_faov_emp_rate"/>
+            <field name="parameter_value">0.01</field>
+            <field name="date_from" eval="datetime(2005, 6, 9).date()"/>
+        </record>
+        <record id="rule_parameter_faov_pat_rate_2005" model="hr.rule.parameter.value">
+            <field name="rule_parameter_id" ref="rule_parameter_faov_pat_rate"/>
+            <field name="parameter_value">0.02</field>
+            <field name="date_from" eval="datetime(2005, 6, 9).date()"/>
+        </record>
+        <record id="rule_parameter_inces_emp_rate_2014" model="hr.rule.parameter.value">
+            <field name="rule_parameter_id" ref="rule_parameter_inces_emp_rate"/>
+            <field name="parameter_value">0.005</field>
+            <field name="date_from" eval="datetime(2014, 11, 19).date()"/>
+        </record>
+        <record id="rule_parameter_inces_pat_rate_2014" model="hr.rule.parameter.value">
+            <field name="rule_parameter_id" ref="rule_parameter_inces_pat_rate"/>
+            <field name="parameter_value">0.02</field>
+            <field name="date_from" eval="datetime(2014, 11, 19).date()"/>
+        </record>
+        <record id="rule_parameter_cepp_pat_rate_2024" model="hr.rule.parameter.value">
+            <field name="rule_parameter_id" ref="rule_parameter_cepp_pat_rate"/>
+            <field name="parameter_value">0.09</field>
+            <field name="date_from" eval="datetime(2024, 5, 16).date()"/>
+        </record>
+        <!-- Último aviso identificado en la investigación (ene-2025 promedio
+             47,56%); ACTUALIZAR mensualmente con el aviso BCV vigente. -->
+        <record id="rule_parameter_prestaciones_rate_2025" model="hr.rule.parameter.value">
+            <field name="rule_parameter_id" ref="rule_parameter_prestaciones_rate"/>
+            <field name="parameter_value">47.56</field>
+            <field name="date_from" eval="datetime(2025, 1, 1).date()"/>
+        </record>
+    </data>
+</odoo>

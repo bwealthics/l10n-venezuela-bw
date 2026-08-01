@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="structure_ve_regular" model="hr.payroll.structure">
+        <field name="name">Venezuela: Nómina Regular</field>
+        <field name="code">VEREG</field>
+        <field name="country_id" ref="base.ve"/>
+        <field name="type_id" ref="l10n_ve_bw_payroll.structure_type_employee_ve"/>
+        <field name="rule_ids" eval="[]"/>
+    </record>
+
+    <record id="structure_ve_utilidades" model="hr.payroll.structure">
+        <field name="name">Venezuela: Utilidades</field>
+        <field name="code">VEUTIL</field>
+        <field name="country_id" ref="base.ve"/>
+        <field name="type_id" ref="l10n_ve_bw_payroll.structure_type_employee_ve"/>
+        <field name="rule_ids" eval="[]"/>
+    </record>
+
+    <record id="structure_ve_vacaciones" model="hr.payroll.structure">
+        <field name="name">Venezuela: Vacaciones</field>
+        <field name="code">VEVAC</field>
+        <field name="country_id" ref="base.ve"/>
+        <field name="type_id" ref="l10n_ve_bw_payroll.structure_type_employee_ve"/>
+        <field name="rule_ids" eval="[]"/>
+    </record>
+
+    <record id="structure_ve_liquidacion" model="hr.payroll.structure">
+        <field name="name">Venezuela: Liquidación</field>
+        <field name="code">VELIQ</field>
+        <field name="country_id" ref="base.ve"/>
+        <field name="type_id" ref="l10n_ve_bw_payroll.structure_type_employee_ve"/>
+        <field name="rule_ids" eval="[]"/>
+    </record>
+
+    <record id="l10n_ve_bw_payroll.structure_type_employee_ve" model="hr.payroll.structure.type">
+        <field name="default_struct_id" ref="structure_ve_regular"/>
+    </record>
+</odoo>

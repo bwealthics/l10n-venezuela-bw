@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Categoría propia: la cesta ticket no es salarial ni entra en el NET
+         (se paga junto, pero es beneficio de alimentación, no salario). -->
+    <record id="salary_rule_category_cesta" model="hr.salary.rule.category">
+        <field name="name">Cesta Ticket</field>
+        <field name="code">CESTA</field>
+    </record>
+</odoo>

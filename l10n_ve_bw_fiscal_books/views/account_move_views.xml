@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_move_form_l10n_ve_control_number" model="ir.ui.view">
+        <field name="name">account.move.form.l10n.ve.control.number</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='ref']" position="after">
+                <!-- El canal viaja invisible: lo necesita el readonly de abajo.
+                     OJO: l10n_ve_bw_fiscal_printer hereda ESTA vista con un
+                     xpath sobre l10n_ve_control_number — se le pueden añadir
+                     hermanos, pero ese campo no se puede mover ni renombrar. -->
+                <field name="l10n_ve_emission_channel" invisible="1"/>
+                <field name="l10n_ve_control_number"
+                       invisible="move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund')"
+                       readonly="l10n_ve_emission_channel in ('mf', 'digital') or (l10n_ve_emission_channel == 'libre' and l10n_ve_control_number)"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

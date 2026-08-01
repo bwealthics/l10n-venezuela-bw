@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_hr_payroll_ve"
+              name="Venezuela"
+              parent="hr_work_entry_enterprise.menu_hr_payroll_root"
+              sequence="85"
+              groups="hr_payroll.group_hr_payroll_user"/>
+    <menuitem id="menu_payroll_provision"
+              action="action_payroll_provision"
+              parent="menu_hr_payroll_ve"
+              sequence="10"/>
+    <menuitem id="menu_prestaciones_line"
+              action="action_prestaciones_line"
+              parent="menu_hr_payroll_ve"
+              sequence="20"/>
+    <menuitem id="menu_liquidacion_wizard"
+              action="action_liquidacion_wizard"
+              parent="menu_hr_payroll_ve"
+              sequence="30"
+              groups="hr_payroll.group_hr_payroll_manager"/>
+    <menuitem id="menu_declaraciones_wizard"
+              action="action_declaraciones_wizard"
+              parent="menu_hr_payroll_ve"
+              sequence="40"/>
+    <menuitem id="menu_arc_wizard"
+              action="action_arc_wizard"
+              parent="menu_hr_payroll_ve"
+              sequence="50"/>
+</odoo>

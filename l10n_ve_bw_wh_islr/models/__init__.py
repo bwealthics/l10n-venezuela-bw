@@ -1,0 +1,8 @@
+# Part of l10n_ve_bw_wh_islr. License LGPL-3.
+from . import ut
+from . import islr_concept
+from . import islr_voucher
+from . import res_partner
+from . import res_company
+from . import res_config_settings
+from . import account_payment_register

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_payslip_ve" model="ir.actions.report">
+        <field name="name">Recibo de Pago (Venezuela)</field>
+        <field name="model">hr.payslip</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">l10n_ve_bw_payroll.report_payslip_ve</field>
+        <field name="report_file">l10n_ve_bw_payroll.report_payslip_ve</field>
+        <field name="print_report_name">'Recibo de Pago - %s - %s' % (object.employee_id.name, object.date_from or '')</field>
+        <field name="binding_model_id" ref="hr_payroll.model_hr_payslip"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Recibo de pago del art. 106 LOTTT: detalle de asignaciones y
+         deducciones con contravalor en Bs a la tasa BCV de la fecha de pago
+         (los montos en Bs son derivados: USD × tasa, nunca re-sumados). -->
+    <template id="report_payslip_ve">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h4 class="text-center">Recibo de Pago — Art. 106 LOTTT</h4>
+                        <div class="row mt-3">
+                            <div class="col-6">
+                                <strong><span t-field="o.company_id.name"/></strong><br/>
+                                RIF: <span t-field="o.company_id.vat"/><br/>
+                                <t t-if="o.company_id.l10n_ve_ivss_employer_number">
+                                    N° Patronal IVSS: <span t-field="o.company_id.l10n_ve_ivss_employer_number"/><br/>
+                                </t>
+                            </div>
+                            <div class="col-6">
+                                <strong><span t-field="o.employee_id.name"/></strong><br/>
+                                C.I.: <span t-field="o.employee_id.identification_id"/><br/>
+                                Cargo: <span t-field="o.employee_id.job_title"/><br/>
+                                Período: <span t-field="o.date_from"/> — <span t-field="o.date_to"/>
+                            </div>
+                        </div>
+                        <p class="mt-2">
+                            Fecha de pago: <span t-field="o.l10n_ve_payment_date"/> ·
+                            Tasa BCV: <strong><t t-esc="'{:,.4f}'.format(o.l10n_ve_bcv_rate or 0)"/> Bs/<t t-esc="o.currency_id.name"/></strong>
+                        </p>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Concepto</th>
+                                    <th class="text-end" t-esc="o.currency_id.name"/>
+                                    <th class="text-end">Bs</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="o.line_ids.filtered(lambda l: l.appears_on_payslip and l.total)" t-as="line">
+                                    <tr t-att-class="'fw-bold' if line.code in ('GROSS', 'NET') else ''">
+                                        <td><span t-field="line.name"/></td>
+                                        <td class="text-end"><t t-esc="'{:,.2f}'.format(line.total)"/></td>
+                                        <td class="text-end"><t t-esc="'{:,.2f}'.format(line.total * (o.l10n_ve_bcv_rate or 0))"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        <div class="row mt-5">
+                            <div class="col-5 text-center">
+                                <hr class="mb-0"/>
+                                <small>Por la entidad de trabajo</small>
+                            </div>
+                            <div class="col-5 offset-2 text-center">
+                                <hr class="mb-0"/>
+                                <small>Recibí conforme — <span t-field="o.employee_id.name"/></small>
+                            </div>
+                        </div>
+                        <p class="mt-3"><small>
+                            Los montos en bolívares son el contravalor informativo a la tasa BCV
+                            de la fecha de pago (art. 128 Ley del BCV). Moneda de pago según
+                            convención de las partes.
+                        </small></p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

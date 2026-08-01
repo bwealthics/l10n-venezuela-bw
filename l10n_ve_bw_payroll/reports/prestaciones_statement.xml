@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_prestaciones" model="ir.actions.report">
+        <field name="name">Estado de Cuenta de Prestaciones</field>
+        <field name="model">hr.employee</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">l10n_ve_bw_payroll.report_prestaciones</field>
+        <field name="report_file">l10n_ve_bw_payroll.report_prestaciones</field>
+        <field name="print_report_name">'Prestaciones - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="hr.model_hr_employee"/>
+        <field name="binding_type">report</field>
+        <field name="group_ids" eval="[(4, ref('hr_payroll.group_hr_payroll_user'))]"/>
+    </record>
+
+    <template id="report_prestaciones">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h4 class="text-center">Estado de Cuenta — Prestaciones Sociales (arts. 142-143 LOTTT)</h4>
+                        <t t-set="Ledger" t-value="o.env['l10n.ve.prestaciones.line']"/>
+                        <t t-set="lines" t-value="Ledger.search([('employee_id', '=', o.id)], order='date')"/>
+                        <p class="mt-2">
+                            <strong><span t-field="o.name"/></strong> — C.I. <span t-field="o.identification_id"/><br/>
+                            Fecha de ingreso: <span t-esc="o.version_id.contract_date_start or o._get_first_contract_date()"/>
+                        </p>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th><th>Concepto</th>
+                                    <th class="text-end">Días</th>
+                                    <th class="text-end">Integral diario</th>
+                                    <th class="text-end">Monto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="lines" t-as="line">
+                                    <tr>
+                                        <td><span t-field="line.date"/></td>
+                                        <td><span t-field="line.concept"/></td>
+                                        <td class="text-end"><t t-esc="'%.2f' % line.days if line.days else ''"/></td>
+                                        <td class="text-end"><t t-esc="'%.4f' % line.daily_integral if line.daily_integral else ''"/></td>
+                                        <td class="text-end"><t t-esc="'{:,.2f}'.format(line.amount)"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                            <tfoot>
+                                <tr class="fw-bold">
+                                    <td colspan="4">Saldo de garantía</td>
+                                    <td class="text-end"><t t-esc="'{:,.2f}'.format(Ledger._garantia_balance(o))"/></td>
+                                </tr>
+                                <tr class="fw-bold">
+                                    <td colspan="4">Intereses acumulados</td>
+                                    <td class="text-end"><t t-esc="'{:,.2f}'.format(Ledger._intereses_balance(o))"/></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        <p><small>Montos en <t t-esc="o.company_id.currency_id.name"/>. Anticipos hasta el 75% del saldo (art. 144 LOTTT).</small></p>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

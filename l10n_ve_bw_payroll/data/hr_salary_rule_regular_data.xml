@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ===================== Asignaciones ===================== -->
+    <record id="rule_ve_reg_basic" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_regular"/>
+        <field name="category_id" ref="hr_payroll.BASIC"/>
+        <field name="name">Sueldo Base</field>
+        <field name="code">BASIC</field>
+        <field name="sequence">1</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = payslip._ve_basic_wage()</field>
+        <field name="l10n_ve_salarial" eval="True"/>
+        <field name="l10n_ve_in_salario_normal" eval="True"/>
+        <field name="l10n_ve_in_inces_base" eval="True"/>
+        <field name="l10n_ve_in_islr_base" eval="True"/>
+        <field name="l10n_ve_in_pension_base" eval="True"/>
+    </record>
+
+    <record id="rule_ve_reg_bnoct" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_regular"/>
+        <field name="category_id" ref="hr_payroll.ALW"/>
+        <field name="name">Bono Nocturno (30%)</field>
+        <field name="code">VE_BNOCT</field>
+        <field name="sequence">10</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'BNOCT_H' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs['BNOCT_H'].amount * payslip._ve_hourly_wage() * 0.30</field>
+        <field name="l10n_ve_salarial" eval="True"/>
+        <field name="l10n_ve_in_salario_normal" eval="True"/>
+        <field name="l10n_ve_in_inces_base" eval="True"/>
+        <field name="l10n_ve_in_islr_base" eval="True"/>
+        <field name="l10n_ve_in_pension_base" eval="True"/>
+    </record>
+
+    <record id="rule_ve_reg_hed" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_regular"/>
+        <field name="category_id" ref="hr_payroll.ALW"/>
+        <field name="name">Horas Extras Diurnas (1,5×)</field>
+        <field name="code">VE_HED</field>
+        <field name="sequence">11</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'HED_H' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs['HED_H'].amount * payslip._ve_hourly_wage() * 1.5</field>
+        <field name="l10n_ve_salarial" eval="True"/>
+        <field name="l10n_ve_in_islr_base" eval="True"/>
+        <field name="l10n_ve_in_pension_base" eval="True"/>
+    </record>
+
+    <record id="rule_ve_reg_hen" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_regular"/>
+        <field name="category_id" ref="hr_payroll.ALW"/>
+        <field name="name">Horas Extras Nocturnas (1,95×)</field>
+        <field name="code">VE_HEN</field>
+        <field name="sequence">12</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'HEN_H' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs['HEN_H'].amount * payslip._ve_hourly_wage() * 1.95</field>
+        <field name="l10n_ve_salarial" eval="True"/>
+        <field name="l10n_ve_in_islr_base" eval="True"/>
+        <field name="l10n_ve_in_pension_base" eval="True"/>
+    </record>
+
+    <record id="rule_ve_reg_feriado" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_regular"/>
+        <field name="category_id" ref="hr_payroll.ALW"/>
+        <field name="name">Feriado/Descanso Trabajado (+50%)</field>
+        <field name="code">VE_FERIADO</field>
+        <field name="sequence">13</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'FERIADO_D' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs['FERIADO_D'].amount * payslip._ve_daily_wage() * 1.5</field>
+        <field name="l10n_ve_salarial" eval="True"/>
+        <field name="l10n_ve_in_islr_base" eval="True"/>
+        <field name="l10n_ve_in_pension_base" eval="True"/>
+    </record>
+
+    <record id="rule_ve_reg_comis" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_regular"/>
+        <field name="category_id" ref="hr_payroll.ALW"/>
+        <field name="name">Comisiones</field>
+        <field name="code">VE_COMIS</field>
+        <field name="sequence">14</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'COMIS' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs['COMIS'].amount</field>
+        <field name="l10n_ve_salarial" eval="True"/>
+        <field name="l10n_ve_in_salario_normal" eval="True"/>
+        <field name="l10n_ve_in_inces_base" eval="True"/>
+        <field name="l10n_ve_in_islr_base" eval="True"/>
+        <field name="l10n_ve_in_pension_base" eval="True"/>
+    </record>
+
+    <!-- No salarial (política de compañía, riesgo de recalificación art. 104
+         LOTTT documentado en la bóveda): no cotiza, pero grava ISLR y CEPP. -->
+    <record id="rule_ve_reg_bono_ns" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_regular"/>
+        <field name="category_id" ref="hr_payroll.ALW"/>
+        <field name="name">Bono No Salarial</field>
+        <field name="code">VE_BONO_NS</field>
+        <field name="sequence">15</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'BONO_NS' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs['BONO_NS'].amount</field>
+        <field name="l10n_ve_in_islr_base" eval="True"/>
+        <field name="l10n_ve_in_pension_base" eval="True"/>
+    </record>
+
+    <!-- Cesta ticket: categoría propia, fuera del GROSS y del NET, con
+         contabilidad independiente (610201 / 210502). Base CEPP. -->
+    <record id="rule_ve_reg_cesta" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_regular"/>
+        <field name="category_id" ref="salary_rule_category_cesta"/>
+        <field name="name">Cesta Ticket (Beneficio de Alimentación)</field>
+        <field name="code">VE_CESTA</field>
+        <field name="sequence">50</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = version.l10n_ve_cesta_ticket</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = payslip._ve_cesta_ticket()</field>
+        <field name="l10n_ve_in_pension_base" eval="True"/>
+    </record>
+
+    <record id="rule_ve_reg_gross" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_regular"/>
+        <field name="category_id" ref="hr_payroll.GROSS"/>
+        <field name="name">Salario Bruto</field>
+        <field name="code">GROSS</field>
+        <field name="sequence">100</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = categories['BASIC'] + categories['ALW']</field>
+    </record>
+
+    <!-- ===================== Deducciones ===================== -->
+    <record id="rule_ve_reg_ivss_emp" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_regular"/>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="name">IVSS (S.S.O. 4%)</field>
+        <field name="code">VE_IVSS_EMP</field>
+        <field name="sequence">110</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = version.l10n_ve_ivss_contributor</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = payslip._ve_ivss_employee(result_rules)</field>
+    </record>
+
+    <record id="rule_ve_reg_rpe_emp" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_regular"/>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="name">RPE — Paro Forzoso (0,5%)</field>
+        <field name="code">VE_RPE_EMP</field>
+        <field name="sequence">111</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = version.l10n_ve_ivss_contributor</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = payslip._ve_rpe_employee(result_rules)</field>
+    </record>
+
+    <record id="rule_ve_reg_faov_emp" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_regular"/>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="name">FAOV (1% salario integral)</field>
+        <field name="code">VE_FAOV_EMP</field>
+        <field name="sequence">112</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = payslip._ve_faov_employee(result_rules)</field>
+    </record>
+
+    <record id="rule_ve_reg_islr" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_regular"/>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="name">Retención ISLR (AR-I)</field>
+        <field name="code">VE_ISLR</field>
+        <field name="sequence">113</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = bool(version.l10n_ve_ari_percentage)</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = payslip._ve_islr(result_rules)</field>
+    </record>
+
+    <record id="rule_ve_reg_embargo" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_regular"/>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="name">Retención Judicial (Manutención)</field>
+        <field name="code">VE_EMBARGO</field>
+        <field name="sequence">114</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'EMBARGO' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = -inputs['EMBARGO'].amount</field>
+    </record>
+
+    <record id="rule_ve_reg_net" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_regular"/>
+        <field name="category_id" ref="hr_payroll.NET"/>
+        <field name="name">Neto a Pagar</field>
+        <field name="code">NET</field>
+        <field name="sequence">200</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = categories['BASIC'] + categories['ALW'] + categories['DED']</field>
+    </record>
+
+    <!-- ============== Aportes patronales (no afectan el neto) ============== -->
+    <record id="rule_ve_reg_ivss_pat" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_regular"/>
+        <field name="category_id" ref="hr_payroll.COMP"/>
+        <field name="name">Aporte Patronal IVSS</field>
+        <field name="code">VE_IVSS_PAT</field>
+        <field name="sequence">210</field>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = version.l10n_ve_ivss_contributor</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = payslip._ve_ivss_employer(result_rules)</field>
+    </record>
+
+    <record id="rule_ve_reg_rpe_pat" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_regular"/>
+        <field name="category_id" ref="hr_payroll.COMP"/>
+        <field name="name">Aporte Patronal RPE (2%)</field>
+        <field name="code">VE_RPE_PAT</field>
+        <field name="sequence">211</field>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = version.l10n_ve_ivss_contributor</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = payslip._ve_rpe_employer(result_rules)</field>
+    </record>
+
+    <record id="rule_ve_reg_faov_pat" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_regular"/>
+        <field name="category_id" ref="hr_payroll.COMP"/>
+        <field name="name">Aporte Patronal FAOV (2%)</field>
+        <field name="code">VE_FAOV_PAT</field>
+        <field name="sequence">212</field>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = payslip._ve_faov_employer(result_rules)</field>
+    </record>
+
+    <!-- Devengo mensual del 2% INCES (el pago es trimestral en SIGAT). -->
+    <record id="rule_ve_reg_inces_pat" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_regular"/>
+        <field name="category_id" ref="hr_payroll.COMP"/>
+        <field name="name">Aporte Patronal INCES (2%)</field>
+        <field name="code">VE_INCES_PAT</field>
+        <field name="sequence">213</field>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = payslip.company_id.l10n_ve_inces_contributor</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = payslip._ve_inces_employer(result_rules)</field>
+    </record>
+
+    <record id="rule_ve_reg_cepp_pat" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_regular"/>
+        <field name="category_id" ref="hr_payroll.COMP"/>
+        <field name="name">Contribución Especial de Pensiones (9%)</field>
+        <field name="code">VE_CEPP_PAT</field>
+        <field name="sequence">214</field>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = payslip._ve_cepp_employer(result_rules)</field>
+    </record>
+</odoo>

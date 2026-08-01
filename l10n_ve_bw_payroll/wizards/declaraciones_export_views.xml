@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="declaraciones_wizard_view_form" model="ir.ui.view">
+        <field name="name">l10n.ve.declaraciones.wizard.form</field>
+        <field name="model">l10n.ve.declaraciones.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Declaraciones VE">
+                <group>
+                    <group>
+                        <field name="company_id" invisible="1"/>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                    </group>
+                </group>
+                <div class="text-muted">
+                    Genera un XLSX con los soportes: IVSS-TIUNA, FAOV, INCES,
+                    CEPP Forma 19 DPP, headcount trimestral, RNET y libro de
+                    horas extra — calculados desde los recibos validados.
+                </div>
+                <group invisible="not file">
+                    <field name="filename" invisible="1"/>
+                    <field name="file" filename="filename" readonly="1"/>
+                </group>
+                <footer>
+                    <button name="action_generate" string="Generar" type="object"
+                            class="btn-primary" data-hotkey="q"/>
+                    <button string="Cerrar" class="btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_declaraciones_wizard" model="ir.actions.act_window">
+        <field name="name">Declaraciones VE (soportes)</field>
+        <field name="res_model">l10n.ve.declaraciones.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="arc_wizard_view_form" model="ir.ui.view">
+        <field name="name">l10n.ve.arc.wizard.form</field>
+        <field name="model">l10n.ve.arc.wizard</field>
+        <field name="arch" type="xml">
+            <form string="AR-C Anual">
+                <group>
+                    <field name="company_id" invisible="1"/>
+                    <field name="year"/>
+                    <field name="employee_ids" widget="many2many_tags"/>
+                </group>
+                <footer>
+                    <button name="action_print" string="Imprimir AR-C" type="object"
+                            class="btn-primary" data-hotkey="q"/>
+                    <button string="Cerrar" class="btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_arc_wizard" model="ir.actions.act_window">
+        <field name="name">AR-C Anual (ISLR asalariados)</field>
+        <field name="res_model">l10n.ve.arc.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

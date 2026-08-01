@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Botón: ancla en el <header> del form BASE de account (siempre existe). -->
+    <record id="view_move_form_fiscal_printer_button" model="ir.ui.view">
+        <field name="name">account.move.form.l10n.ve.fiscal.printer.button</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_l10n_ve_print_fiscal" type="object"
+                        string="Imprimir fiscal"
+                        help="Imprime este documento en la máquina fiscal (solo desde la PC donde corre el bridge)."
+                        invisible="move_type not in ('out_invoice', 'out_refund') or state != 'posted' or l10n_ve_fiscal_number"/>
+                <!-- el invisible del botón lo referencia: debe existir en ESTE record -->
+                <field name="l10n_ve_fiscal_number" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Campos: anclan en l10n_ve_control_number, que INYECTA la vista de
+         fiscal_books — heredamos ESA vista (no la base) para que el ancla
+         exista siempre, sin depender del orden/prioridad entre hermanas. -->
+    <record id="view_move_form_fiscal_printer_fields" model="ir.ui.view">
+        <field name="name">account.move.form.l10n.ve.fiscal.printer.fields</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="l10n_ve_bw_fiscal_books.view_move_form_l10n_ve_control_number"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='l10n_ve_control_number']" position="after">
+                <field name="l10n_ve_fiscal_number" readonly="1"
+                       invisible="move_type not in ('out_invoice', 'out_refund')"/>
+                <field name="l10n_ve_fiscal_machine_serial" readonly="1"
+                       invisible="not l10n_ve_fiscal_number"/>
+                <field name="l10n_ve_fiscal_date" readonly="1"
+                       invisible="not l10n_ve_fiscal_number"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

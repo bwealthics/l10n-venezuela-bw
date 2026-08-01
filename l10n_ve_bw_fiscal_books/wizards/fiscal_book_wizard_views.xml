@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_fiscal_book_wizard_form" model="ir.ui.view">
+        <field name="name">l10n.ve.fiscal.book.wizard.form</field>
+        <field name="model">l10n.ve.fiscal.book.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Libros Fiscales (VE)">
+                <group>
+                    <group>
+                        <field name="book_type" widget="radio"/>
+                        <field name="company_id" invisible="1"/>
+                    </group>
+                    <group>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                    </group>
+                </group>
+                <group invisible="not file">
+                    <field name="filename" invisible="1"/>
+                    <field name="file" filename="filename" readonly="1"/>
+                </group>
+                <footer>
+                    <button name="action_generate" string="Generar" type="object" class="btn-primary" data-hotkey="q"/>
+                    <button string="Cerrar" class="btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_fiscal_book_wizard_sale" model="ir.actions.act_window">
+        <field name="name">Libro de Ventas</field>
+        <field name="res_model">l10n.ve.fiscal.book.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_book_type': 'sale'}</field>
+    </record>
+
+    <record id="action_fiscal_book_wizard_purchase" model="ir.actions.act_window">
+        <field name="name">Libro de Compras</field>
+        <field name="res_model">l10n.ve.fiscal.book.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_book_type': 'purchase'}</field>
+    </record>
+
+    <menuitem id="menu_l10n_ve_fiscal_books"
+              name="Libros Fiscales (VE)"
+              parent="account.menu_finance_reports"
+              sequence="90"
+              groups="account.group_account_invoice"/>
+    <menuitem id="menu_l10n_ve_fiscal_book_sale"
+              name="Libro de Ventas"
+              parent="menu_l10n_ve_fiscal_books"
+              action="action_fiscal_book_wizard_sale"
+              sequence="10"/>
+    <menuitem id="menu_l10n_ve_fiscal_book_purchase"
+              name="Libro de Compras"
+              parent="menu_l10n_ve_fiscal_books"
+              action="action_fiscal_book_wizard_purchase"
+              sequence="20"/>
+</odoo>

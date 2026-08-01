@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_payslip_form" model="ir.ui.view">
+        <field name="name">hr.payslip.form.inherit.l10n.ve.bw.payroll</field>
+        <field name="model">hr.payslip</field>
+        <field name="inherit_id" ref="hr_payroll.view_hr_payslip_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='top_left']" position="inside">
+                <field name="l10n_ve_payment_date" readonly="state != 'draft'"/>
+                <field name="l10n_ve_bcv_rate"
+                       readonly="state != 'draft'"
+                       groups="hr_payroll.group_hr_payroll_user"/>
+                <field name="l10n_ve_total_ves"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

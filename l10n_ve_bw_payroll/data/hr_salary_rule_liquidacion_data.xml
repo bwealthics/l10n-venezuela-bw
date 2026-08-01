@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Liquidación (art. 142 LOTTT). Los montos llegan como inputs desde el
+         wizard de finiquito. Prestaciones e intereses: exentos de ISLR
+         (art. 14.4 LISLR) y fuera de la base CEPP (criterio prevaleciente,
+         documentado en el informe normativo). Fracciones de vacaciones/bono/
+         utilidades: gravables ISLR, base CEPP 9% e INCES ½% (utilidades). -->
+    <record id="rule_ve_liq_prest_gar" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_liquidacion"/>
+        <field name="category_id" ref="hr_payroll.BASIC"/>
+        <field name="name">Garantía de Prestaciones (art. 142.a-b)</field>
+        <field name="code">VE_LIQ_PREST_GAR</field>
+        <field name="sequence">1</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'LIQ_PREST_GAR' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs['LIQ_PREST_GAR'].amount</field>
+    </record>
+
+    <record id="rule_ve_liq_prest_extra" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_liquidacion"/>
+        <field name="category_id" ref="hr_payroll.BASIC"/>
+        <field name="name">Diferencia Retroactivo (art. 142.d)</field>
+        <field name="code">VE_LIQ_PREST_EXTRA</field>
+        <field name="sequence">2</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'LIQ_PREST_EXTRA' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs['LIQ_PREST_EXTRA'].amount</field>
+    </record>
+
+    <!-- Garantía del trimestre en curso (el derecho nace al INICIAR el
+         trimestre, art. 142.a): nunca fue provisionado → gasto directo. -->
+    <record id="rule_ve_liq_prest_trim" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_liquidacion"/>
+        <field name="category_id" ref="hr_payroll.BASIC"/>
+        <field name="name">Garantía del Trimestre en Curso (art. 142.a)</field>
+        <field name="code">VE_LIQ_PREST_TRIM</field>
+        <field name="sequence">3</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'LIQ_PREST_TRIM' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs['LIQ_PREST_TRIM'].amount</field>
+    </record>
+
+    <record id="rule_ve_liq_int" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_liquidacion"/>
+        <field name="category_id" ref="hr_payroll.ALW"/>
+        <field name="name">Intereses sobre Prestaciones (art. 143)</field>
+        <field name="code">VE_LIQ_INT</field>
+        <field name="sequence">10</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'LIQ_INT' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs['LIQ_INT'].amount</field>
+    </record>
+
+    <record id="rule_ve_liq_vac" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_liquidacion"/>
+        <field name="category_id" ref="hr_payroll.ALW"/>
+        <field name="name">Vacaciones Fraccionadas (art. 196)</field>
+        <field name="code">VE_LIQ_VAC</field>
+        <field name="sequence">11</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'LIQ_VAC' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs['LIQ_VAC'].amount</field>
+        <field name="l10n_ve_in_islr_base" eval="True"/>
+        <field name="l10n_ve_in_pension_base" eval="True"/>
+    </record>
+
+    <record id="rule_ve_liq_bvac" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_liquidacion"/>
+        <field name="category_id" ref="hr_payroll.ALW"/>
+        <field name="name">Bono Vacacional Fraccionado</field>
+        <field name="code">VE_LIQ_BVAC</field>
+        <field name="sequence">12</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'LIQ_BVAC' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs['LIQ_BVAC'].amount</field>
+        <field name="l10n_ve_in_islr_base" eval="True"/>
+        <field name="l10n_ve_in_pension_base" eval="True"/>
+    </record>
+
+    <record id="rule_ve_liq_util" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_liquidacion"/>
+        <field name="category_id" ref="hr_payroll.ALW"/>
+        <field name="name">Utilidades Fraccionadas (art. 131)</field>
+        <field name="code">VE_LIQ_UTIL</field>
+        <field name="sequence">13</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'LIQ_UTIL' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs['LIQ_UTIL'].amount</field>
+        <field name="l10n_ve_in_islr_base" eval="True"/>
+        <field name="l10n_ve_in_pension_base" eval="True"/>
+    </record>
+
+    <record id="rule_ve_liq_inces_util" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_liquidacion"/>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="name">INCES ½% sobre Utilidades Fraccionadas</field>
+        <field name="code">VE_LIQ_INCES_UTIL</field>
+        <field name="sequence">110</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'LIQ_UTIL' in inputs and payslip.company_id.l10n_ve_inces_contributor</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = -(inputs['LIQ_UTIL'].amount * payslip._ve_param('l10n_ve_inces_emp_rate'))</field>
+    </record>
+
+    <record id="rule_ve_liq_islr" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_liquidacion"/>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="name">Retención ISLR (AR-I)</field>
+        <field name="code">VE_ISLR</field>
+        <field name="sequence">111</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = bool(version.l10n_ve_ari_percentage)</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = payslip._ve_islr(result_rules)</field>
+    </record>
+
+    <record id="rule_ve_liq_net" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_liquidacion"/>
+        <field name="category_id" ref="hr_payroll.NET"/>
+        <field name="name">Neto a Pagar (Liquidación)</field>
+        <field name="code">NET</field>
+        <field name="sequence">200</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = categories['BASIC'] + categories['ALW'] + categories['DED']</field>
+    </record>
+
+    <!-- Las fracciones (vac/bono/utilidades) integran la base CEPP del mes;
+         sin piso IMI (ya se aplica en la nómina regular del mes). -->
+    <record id="rule_ve_liq_cepp_pat" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_liquidacion"/>
+        <field name="category_id" ref="hr_payroll.COMP"/>
+        <field name="name">Contribución Especial de Pensiones (9%)</field>
+        <field name="code">VE_CEPP_PAT</field>
+        <field name="sequence">210</field>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = payslip._ve_base('pension', result_rules) * payslip._ve_param('l10n_ve_cepp_pat_rate')</field>
+    </record>
+</odoo>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.l10n.ve.bw.chart</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='account']" position="inside">
+                <block title="Localización Venezuela" name="l10n_ve_bw_venezuela">
+                    <setting id="l10n_ve_bw_spe_setting"
+                             string="Sujeto Pasivo Especial (SPE)"
+                             company_dependent="1"
+                             help="Designación de Sujeto Pasivo Especial notificada por el SENIAT. Activa la retención de IVA como agente y la percepción de IGTF.">
+                        <field name="l10n_ve_is_spe"/>
+                        <div class="content-group" invisible="not l10n_ve_is_spe">
+                            <div class="row mt16">
+                                <label for="l10n_ve_spe_date" string="Fecha de designación" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_ve_spe_date"/>
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

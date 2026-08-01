@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.DS_Store
+.idea/
+.vscode/
+.claude/
+*.swp
+.env
+config.json
+credentials*.json
+*.log

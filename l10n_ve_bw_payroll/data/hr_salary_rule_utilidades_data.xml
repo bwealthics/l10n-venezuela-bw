@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Pago de utilidades (art. 131-132 LOTTT): días por input UTIL_D o los
+         de la compañía × promedio diario del salario normal del ejercicio
+         (recibos validados del año; sin historial, sueldo del contrato).
+         Debita la provisión 210601 (el gasto se devengó mensualmente). -->
+    <record id="rule_ve_util_util" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_utilidades"/>
+        <field name="category_id" ref="hr_payroll.BASIC"/>
+        <field name="name">Utilidades</field>
+        <field name="code">VE_UTIL</field>
+        <field name="sequence">1</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">days = inputs['UTIL_D'].amount if 'UTIL_D' in inputs else payslip.company_id.l10n_ve_utilidades_days
+result = payslip._ve_util_average_daily() * days</field>
+        <field name="l10n_ve_salarial" eval="True"/>
+        <field name="l10n_ve_in_islr_base" eval="True"/>
+        <field name="l10n_ve_in_pension_base" eval="True"/>
+    </record>
+
+    <record id="rule_ve_util_gross" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_utilidades"/>
+        <field name="category_id" ref="hr_payroll.GROSS"/>
+        <field name="name">Total Utilidades</field>
+        <field name="code">GROSS</field>
+        <field name="sequence">100</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = categories['BASIC'] + categories['ALW']</field>
+    </record>
+
+    <!-- Única incidencia de las utilidades en INCES: ½% retenido al
+         trabajador sobre lo pagado (art. 50 Decreto-Ley INCES 2014).
+         l10n_ve_salarial de VE_UTIL alimenta esta base vía _ve_base. -->
+    <record id="rule_ve_util_inces_emp" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_utilidades"/>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="name">INCES ½% sobre Utilidades</field>
+        <field name="code">VE_INCES_UTIL</field>
+        <field name="sequence">110</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = payslip.company_id.l10n_ve_inces_contributor</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = payslip._ve_inces_utilidades(result_rules)</field>
+    </record>
+
+    <record id="rule_ve_util_islr" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_utilidades"/>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="name">Retención ISLR (AR-I)</field>
+        <field name="code">VE_ISLR</field>
+        <field name="sequence">111</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = bool(version.l10n_ve_ari_percentage)</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = payslip._ve_islr(result_rules)</field>
+    </record>
+
+    <record id="rule_ve_util_net" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_utilidades"/>
+        <field name="category_id" ref="hr_payroll.NET"/>
+        <field name="name">Neto a Pagar</field>
+        <field name="code">NET</field>
+        <field name="sequence">200</field>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = categories['BASIC'] + categories['ALW'] + categories['DED']</field>
+    </record>
+
+    <!-- Las utilidades integran la base CEPP del mes en que se pagan. -->
+    <record id="rule_ve_util_cepp_pat" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_utilidades"/>
+        <field name="category_id" ref="hr_payroll.COMP"/>
+        <field name="name">Contribución Especial de Pensiones (9%)</field>
+        <field name="code">VE_CEPP_PAT</field>
+        <field name="sequence">210</field>
+        <field name="appears_on_payslip" eval="False"/>
+        <field name="condition_select">none</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = payslip._ve_base('pension', result_rules) * payslip._ve_param('l10n_ve_cepp_pat_rate')</field>
+    </record>
+</odoo>

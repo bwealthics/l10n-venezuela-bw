@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.l10n.ve.bw.municipal</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='account']" position="inside">
+                <block title="Localización Venezuela — Impuesto Municipal" name="l10n_ve_bw_municipal_block">
+                    <setting id="l10n_ve_bw_municipal_setting"
+                             string="Impuesto Municipal (Patente de Industria y Comercio)"
+                             company_dependent="1"
+                             help="Cálculo mensual sobre los ingresos brutos del período y asiento de provisión Dr Gasto / Cr Por Pagar.">
+                        <div class="content-group">
+                            <div class="row mt8">
+                                <label for="l10n_ve_municipal_name" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_ve_municipal_name"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_ve_municipal_rate" string="Alícuota (%)" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_ve_municipal_rate"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_ve_municipal_minimum" string="Mínimo fijo mensual" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_ve_municipal_minimum"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_ve_municipal_minimum_mmv" string="Mínimo (veces MMV)" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_ve_municipal_minimum_mmv"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_ve_municipal_tcmmv" string="TCMMV (Bs)" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_ve_municipal_tcmmv"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_ve_municipal_expense_account_id" string="Cuenta de gasto" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_ve_municipal_expense_account_id"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_ve_municipal_payable_account_id" string="Cuenta por pagar" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_ve_municipal_payable_account_id"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_ve_municipal_journal_id" string="Diario misceláneo" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_ve_municipal_journal_id"/>
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- El QWeb del core rotula el RIF del comprador con vat_label del país
+         fiscal. En Venezuela viene vacío, así que el PDF imprimiría "Tax ID". -->
+    <record id="base.ve" model="res.country">
+        <field name="vat_label">RIF</field>
+    </record>
+</odoo>

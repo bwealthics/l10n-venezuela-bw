@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_arc_employee" model="ir.actions.report">
+        <field name="name">AR-C (Retenciones ISLR Asalariado)</field>
+        <field name="model">hr.employee</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">l10n_ve_bw_payroll.report_arc_employee</field>
+        <field name="report_file">l10n_ve_bw_payroll.report_arc_employee</field>
+        <field name="print_report_name">'ARC - %s' % (object.name)</field>
+        <field name="group_ids" eval="[(4, ref('hr_payroll.group_hr_payroll_user'))]"/>
+    </record>
+
+    <!-- Comprobante anual de retención (Decreto 1.808 art. 24): entregar al
+         trabajador antes del 31-ene del año siguiente y al cese. -->
+    <template id="report_arc_employee">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h4 class="text-center">Comprobante de Retención de I.S.L.R. — AR-C</h4>
+                        <p class="text-center">Ejercicio fiscal <strong t-esc="year"/> (Decreto 1.808, art. 24)</p>
+                        <div class="row mt-3">
+                            <div class="col-6">
+                                <strong>Agente de retención</strong><br/>
+                                <span t-field="company.name"/><br/>
+                                RIF: <span t-field="company.vat"/>
+                            </div>
+                            <div class="col-6">
+                                <strong>Trabajador</strong><br/>
+                                <span t-field="o.name"/><br/>
+                                C.I.: <span t-field="o.identification_id"/>
+                            </div>
+                        </div>
+                        <t t-set="rows" t-value="table[o.id]"/>
+                        <table class="table table-sm mt-3">
+                            <thead>
+                                <tr>
+                                    <th>Mes</th>
+                                    <th class="text-end">Remuneraciones Bs</th>
+                                    <th class="text-end">ISLR retenido Bs</th>
+                                    <th class="text-end">Remuneraciones USD</th>
+                                    <th class="text-end">ISLR retenido USD</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="range(1, 13)" t-as="m">
+                                    <tr t-if="rows['months'][m]['rem_usd'] or rows['months'][m]['wh_usd']">
+                                        <td><t t-esc="'%02d/%s' % (m, year)"/></td>
+                                        <td class="text-end"><t t-esc="'{:,.2f}'.format(rows['months'][m]['rem_bs'])"/></td>
+                                        <td class="text-end"><t t-esc="'{:,.2f}'.format(rows['months'][m]['wh_bs'])"/></td>
+                                        <td class="text-end"><t t-esc="'{:,.2f}'.format(rows['months'][m]['rem_usd'])"/></td>
+                                        <td class="text-end"><t t-esc="'{:,.2f}'.format(rows['months'][m]['wh_usd'])"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                            <tfoot>
+                                <tr class="fw-bold">
+                                    <td>Totales</td>
+                                    <td class="text-end"><t t-esc="'{:,.2f}'.format(rows['total_rem_bs'])"/></td>
+                                    <td class="text-end"><t t-esc="'{:,.2f}'.format(rows['total_wh_bs'])"/></td>
+                                    <td class="text-end"><t t-esc="'{:,.2f}'.format(rows['total_rem_usd'])"/></td>
+                                    <td class="text-end"><t t-esc="'{:,.2f}'.format(rows['total_wh_usd'])"/></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                        <p><small>Montos en Bs al tipo de cambio BCV de la fecha de pago de cada
+                        recibo. Este comprobante se emite a los fines del art. 24 del
+                        Reglamento Parcial de la LISLR en materia de retenciones.</small></p>
+                        <div class="row mt-5">
+                            <div class="col-5 text-center">
+                                <hr class="mb-0"/>
+                                <small>Agente de retención</small>
+                            </div>
+                            <div class="col-5 offset-2 text-center">
+                                <hr class="mb-0"/>
+                                <small>Recibí — <span t-field="o.name"/></small>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

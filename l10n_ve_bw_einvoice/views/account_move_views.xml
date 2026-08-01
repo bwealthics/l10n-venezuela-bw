@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_move_form_l10n_ve_edoc" model="ir.ui.view">
+        <field name="name">account.move.form.l10n.ve.edoc</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="l10n_ve_bw_fiscal_books.view_move_form_l10n_ve_control_number"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='l10n_ve_control_number']" position="after">
+                <field name="l10n_ve_edoc_state"
+                       invisible="l10n_ve_emission_channel != 'digital'"/>
+                <field name="l10n_ve_edoc_external_id"
+                       invisible="not l10n_ve_edoc_external_id"/>
+                <field name="l10n_ve_edoc_error"
+                       invisible="l10n_ve_edoc_state != 'error'"/>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button name="action_l10n_ve_edoc_send" type="object"
+                        string="Enviar a imprenta digital" class="btn-primary"
+                        invisible="l10n_ve_emission_channel != 'digital' or state != 'posted' or l10n_ve_edoc_state in ('sent', 'assigned')"/>
+                <button name="action_l10n_ve_edoc_fetch" type="object"
+                        string="Consultar Nº de control"
+                        invisible="l10n_ve_edoc_state != 'sent'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

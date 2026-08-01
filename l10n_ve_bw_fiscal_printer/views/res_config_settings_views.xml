@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.l10n.ve.fiscal.printer</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="l10n_ve_bw_fiscal_books.res_config_settings_view_form_l10n_ve"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='l10n_ve_bw_fiscal_books']" position="inside">
+                <setting string="Bridge de impresora fiscal"
+                         help="Microservicio local en la PC de la caja que controla la máquina fiscal HKA. Vacío = esta caja no imprime fiscal.">
+                    <div class="row">
+                        <label for="pos_l10n_ve_bridge_url" class="col-lg-4"/>
+                        <field name="pos_l10n_ve_bridge_url" placeholder="http://localhost:5001"/>
+                    </div>
+                    <div class="row">
+                        <label for="pos_l10n_ve_bridge_token" class="col-lg-4"/>
+                        <field name="pos_l10n_ve_bridge_token" password="True"/>
+                    </div>
+                    <div class="row">
+                        <label for="pos_l10n_ve_default_payment_code" class="col-lg-4"/>
+                        <field name="pos_l10n_ve_default_payment_code"/>
+                    </div>
+                </setting>
+                <setting string="Pre-cuenta (art. 49 PA 0071)"
+                         help="Ocultar el botón Bill del POS Restaurante: está prohibido entregar pre-cuentas con montos como sustituto de la factura fiscal.">
+                    <field name="pos_l10n_ve_hide_precuenta"/>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

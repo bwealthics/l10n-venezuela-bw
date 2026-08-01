@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rule_prestaciones_line_company" model="ir.rule">
+        <field name="name">Prestaciones: multicompañía</field>
+        <field name="model_id" ref="model_l10n_ve_prestaciones_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_payroll_provision_company" model="ir.rule">
+        <field name="name">Provisiones: multicompañía</field>
+        <field name="model_id" ref="model_l10n_ve_payroll_provision"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+    <record id="rule_payroll_provision_line_company" model="ir.rule">
+        <field name="name">Líneas de provisión: multicompañía</field>
+        <field name="model_id" ref="model_l10n_ve_payroll_provision_line"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

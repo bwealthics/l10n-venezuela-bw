@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- no_gap: correlativo fiscal (art. 16, PA SNAT/2025/000054).
+             use_date_range: el secuencial de 8 dígitos reinicia por período
+             (los rangos MENSUALES los crea _l10n_ve_next_voucher_number, que
+             además hace get-or-create de la secuencia POR COMPAÑÍA; este
+             registro cubre la compañía activa en la instalación). -->
+        <record id="seq_l10n_ve_iva_wh_voucher" model="ir.sequence">
+            <field name="name">Comprobante de Retención de IVA</field>
+            <field name="code">l10n.ve.iva.wh.voucher</field>
+            <field name="prefix">%(year)s%(month)s</field>
+            <field name="padding">8</field>
+            <field name="implementation">no_gap</field>
+            <field name="use_date_range" eval="True"/>
+        </record>
+    </data>
+</odoo>
