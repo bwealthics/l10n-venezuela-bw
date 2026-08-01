@@ -1,0 +1,126 @@
+name: 📋 Reporte de cambio normativo
+description: Avisar de una norma nueva o reformada que obliga a cambiar el código (providencia SENIAT, decreto, ordenanza, ley).
+title: "[Norma] "
+labels: ["cambio-normativo"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Gracias por reportar. Esta plantilla es para **cambios en la normativa
+        venezolana** que dejan obsoleto el comportamiento actual de la suite:
+        alícuotas, porcentajes de retención, formatos de comprobante o de
+        archivo, plazos, topes, requisitos de forma.
+
+        Para un error de programación que no viene de un cambio de norma, abre
+        un issue normal describiendo el fallo.
+
+        > No adjuntes datos reales de contribuyentes (RIF, montos, nombres):
+        > usa datos ficticios en los ejemplos.
+
+  - type: input
+    id: norma
+    attributes:
+      label: Norma
+      description: Identificación oficial completa.
+      placeholder: "Providencia Administrativa SNAT/2025/000054"
+    validations:
+      required: true
+
+  - type: input
+    id: gaceta
+    attributes:
+      label: Gaceta Oficial
+      description: Número y fecha de publicación.
+      placeholder: "G.O. 42.999 del 15/07/2026"
+    validations:
+      required: true
+
+  - type: input
+    id: vigencia
+    attributes:
+      label: Entrada en vigencia
+      description: Desde cuándo aplica. Si es distinta de la publicación, indícalo (p. ej. «60 días continuos después»).
+      placeholder: "01/09/2026"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: modulos
+    attributes:
+      label: Módulos afectados
+      description: Marca todos los que correspondan.
+      multiple: true
+      options:
+        - l10n_ve_bw_chart (plan de cuentas, impuestos de IVA, SPE)
+        - l10n_ve_bw_igtf (IGTF)
+        - l10n_ve_bw_wh_iva (retención de IVA, TXT 99035)
+        - l10n_ve_bw_wh_islr (retención de ISLR, XML mensual)
+        - l10n_ve_bw_municipal (patente de industria y comercio)
+        - l10n_ve_bw_fiscal_books (Libros de Compras y Ventas)
+        - l10n_ve_bw_invoice_format (forma del comprobante)
+        - l10n_ve_bw_einvoice (imprenta digital)
+        - l10n_ve_bw_fiscal_printer (máquina fiscal en el POS)
+        - l10n_ve_bw_compliance (paraguas / audit log)
+        - l10n_ve_bw_payroll (nómina)
+        - No estoy seguro
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tipo
+    attributes:
+      label: Tipo de cambio
+      options:
+        - Alícuota, porcentaje o tarifa
+        - Tope, mínimo o unidad de referencia (UT, MMV, salario mínimo)
+        - Formato de comprobante o de archivo (TXT/XML/XLSX)
+        - Requisito de forma en la factura
+        - Plazo o periodicidad de declaración
+        - Nueva obligación o nuevo documento
+        - Derogación de una obligación existente
+        - Otro
+    validations:
+      required: true
+
+  - type: textarea
+    id: que-cambia
+    attributes:
+      label: Qué cambia exactamente
+      description: Cita el artículo y describe el antes y el después.
+      placeholder: |
+        Art. 12: el porcentaje de retención para contribuyentes ordinarios pasa
+        de 75 % a 100 % del IVA facturado.
+        Antes: se retenía el 75 %.
+        Después: se retiene el 100 %.
+    validations:
+      required: true
+
+  - type: textarea
+    id: comportamiento-actual
+    attributes:
+      label: Qué hace hoy la suite
+      description: Si sabes dónde vive el comportamiento (archivo, campo, parámetro de regla), indícalo — acelera mucho el arreglo.
+      placeholder: "l10n_ve_bw_wh_iva: el campo wh_rate se calcula con 75.0 por defecto."
+    validations:
+      required: false
+
+  - type: textarea
+    id: fuente
+    attributes:
+      label: Fuente oficial
+      description: Enlace a la Gaceta, al portal del SENIAT o a la ordenanza. Adjunta el PDF si no hay URL estable.
+      placeholder: "http://…"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confirmaciones
+    attributes:
+      label: Confirmaciones
+      options:
+        - label: Adjunto la fuente oficial (no solo una nota de prensa o un resumen de un tercero).
+          required: true
+        - label: Verifiqué que no hay ya un issue abierto para esta misma norma.
+          required: true
+        - label: No incluí datos reales de contribuyentes en este reporte.
+          required: true

@@ -65,7 +65,22 @@ Este repositorio se publica **tal cual**, como aporte a la comunidad. Se aceptan
 issues y pull requests, sin compromiso de tiempo de respuesta. Para
 implementación asistida: [bwealthics.com](https://www.bwealthics.com).
 
+## Cambios
+
+Cada módulo lleva su propio `CHANGELOG.md`, con el versionado de Odoo
+(`19.0.MAJOR.MINOR.PATCH`).
+
+## Reportar un cambio normativo
+
+Cuando el SENIAT, una ordenanza o una ley reforman algo que esta suite
+implementa, ábrelo como
+[reporte de cambio normativo](../../issues/new?template=cambio-normativo.yml):
+la plantilla pide la Gaceta, la fecha de vigencia y los módulos afectados, que
+es lo que hace falta para actuar sin investigar de cero.
+
 ## Licencia
+
+Copyright 2026 BWEALTHICS LLC.
 
 LGPL-3, salvo `l10n_ve_bw_compliance` (AGPL-3). Cada módulo declara su licencia
 en su `__manifest__.py`. Ver [LICENSE](LICENSE) y

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 BWEALTHICS LLC -->
 <odoo>
     <record id="prestaciones_line_view_list" model="ir.ui.view">
         <field name="name">l10n.ve.prestaciones.line.list</field>

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 BWEALTHICS LLC -->
 <odoo>
     <record id="structure_ve_regular" model="hr.payroll.structure">
         <field name="name">Venezuela: Nómina Regular</field>

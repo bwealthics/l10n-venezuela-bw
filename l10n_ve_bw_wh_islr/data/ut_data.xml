@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 BWEALTHICS LLC -->
 <odoo noupdate="1">
 
     <record id="ut_2025_06_02" model="l10n.ve.ut">

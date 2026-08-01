@@ -1,3 +1,4 @@
+# Copyright 2026 BWEALTHICS LLC
 # Part of l10n_ve_bw_fiscal_books. License LGPL-3.
 """Siembra del diario de contingencia (PA 0071 art. 11).
 

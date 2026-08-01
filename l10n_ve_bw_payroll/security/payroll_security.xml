@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 BWEALTHICS LLC -->
 <odoo>
     <record id="rule_prestaciones_line_company" model="ir.rule">
         <field name="name">Prestaciones: multicompañía</field>

@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 BWEALTHICS LLC -->
 <odoo>
     <!-- Se cuelga del bloque "Localización Venezuela" que ya crea
          l10n_ve_bw_chart en Contabilidad > Configuración. -->

@@ -1,3 +1,4 @@
+# Copyright 2026 BWEALTHICS LLC
 # Part of l10n_ve_bw_payroll. License LGPL-3.
 """Mapeo de cuentas del chart ve_bw a las reglas salariales.
 

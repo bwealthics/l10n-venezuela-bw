@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 BWEALTHICS LLC -->
 <odoo>
     <!-- Todos los xpath están verificados contra
          odoo/19.0/addons/account/views/report_invoice.xml. Se hereda por

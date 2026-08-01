@@ -1,3 +1,4 @@
+# Copyright 2026 BWEALTHICS LLC
 # Part of l10n_ve_bw_payroll. License LGPL-3.
 """Re-mapea las cuentas de las reglas salariales en el upgrade v1→v2.
 

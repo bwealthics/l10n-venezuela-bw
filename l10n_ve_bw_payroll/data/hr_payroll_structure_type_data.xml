@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 BWEALTHICS LLC -->
 <odoo>
     <record id="structure_type_employee_ve" model="hr.payroll.structure.type">
         <field name="name">Venezuela: Empleado</field>

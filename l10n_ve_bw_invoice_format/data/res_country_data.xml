@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 BWEALTHICS LLC -->
 <odoo>
     <!-- El QWeb del core rotula el RIF del comprador con vat_label del país
          fiscal. En Venezuela viene vacío, así que el PDF imprimiría "Tax ID". -->

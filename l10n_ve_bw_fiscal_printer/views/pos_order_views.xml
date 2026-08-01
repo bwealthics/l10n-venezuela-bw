@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 BWEALTHICS LLC -->
 <odoo>
     <record id="view_pos_pos_form_fiscal" model="ir.ui.view">
         <field name="name">pos.order.form.l10n.ve.fiscal.printer</field>

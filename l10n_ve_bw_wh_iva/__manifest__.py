@@ -1,3 +1,4 @@
+# Copyright 2026 BWEALTHICS LLC
 # Part of l10n_ve_bw. License LGPL-3.
 {
     "name": "Venezuela — Retenciones de IVA",
