@@ -65,6 +65,14 @@ Este repositorio se publica **tal cual**, como aporte a la comunidad. Se aceptan
 issues y pull requests, sin compromiso de tiempo de respuesta. Para
 implementación asistida: [bwealthics.com](https://www.bwealthics.com).
 
+Antes de abrir un PR, lee [CONTRIBUTING.md](CONTRIBUTING.md): dice qué módulos
+se pueden probar sin Enterprise y sin máquina fiscal, cómo correr los tests y
+qué exige un cambio de comportamiento fiscal (norma citada, test y entrada de
+CHANGELOG). La convivencia se rige por el
+[código de conducta](CODE_OF_CONDUCT.md), cuya regla más importante aquí es que
+**no entran datos fiscales de terceros** —ni en un issue, ni en un test, ni en
+una captura—.
+
 ## Cambios
 
 Cada módulo lleva su propio `CHANGELOG.md`, con el versionado de Odoo
