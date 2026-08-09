@@ -22,6 +22,21 @@
                         <field name="pos_l10n_ve_default_payment_code"/>
                     </div>
                 </setting>
+                <setting string="Facturación en papel (talonario / formas libres)"
+                         help="Caja sin máquina fiscal: el POS captura los números de la papelería de imprenta autorizada y genera la factura solo. Con bridge configurado este modo se ignora.">
+                    <div class="row">
+                        <label for="pos_l10n_ve_paper_mode" class="col-lg-4"/>
+                        <field name="pos_l10n_ve_paper_mode"/>
+                    </div>
+                    <div class="row">
+                        <label for="pos_l10n_ve_paper_batch_id" class="col-lg-4"/>
+                        <field name="pos_l10n_ve_paper_batch_id"/>
+                    </div>
+                    <div class="row" invisible="pos_l10n_ve_paper_mode != 'contingencia'">
+                        <label for="pos_l10n_ve_contingency_journal_id" class="col-lg-4"/>
+                        <field name="pos_l10n_ve_contingency_journal_id"/>
+                    </div>
+                </setting>
                 <setting string="Pre-cuenta (art. 49 PA 0071)"
                          help="Ocultar el botón Bill del POS Restaurante: está prohibido entregar pre-cuentas con montos como sustituto de la factura fiscal.">
                     <field name="pos_l10n_ve_hide_precuenta"/>

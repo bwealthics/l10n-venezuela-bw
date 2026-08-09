@@ -14,6 +14,12 @@
                     <field name="l10n_ve_fiscal_machine_serial"/>
                     <field name="l10n_ve_fiscal_date"/>
                 </group>
+                <group string="Papelería fiscal (talonario / forma libre)"
+                       name="l10n_ve_contingency"
+                       invisible="not l10n_ve_contingency_control">
+                    <field name="l10n_ve_contingency_invoice_number"/>
+                    <field name="l10n_ve_contingency_control"/>
+                </group>
             </xpath>
         </field>
     </record>

@@ -2,7 +2,7 @@
 # Part of l10n_ve_bw_fiscal_printer. License LGPL-3.
 {
     "name": "Venezuela — Impresora Fiscal POS (The Factory HKA)",
-    "version": "19.0.1.2.1",
+    "version": "19.0.1.3.1",
     "license": "LGPL-3",
     "author": "BWEALTHICS LLC",
     "website": "https://www.bwealthics.com",

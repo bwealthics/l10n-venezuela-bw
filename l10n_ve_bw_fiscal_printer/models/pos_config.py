@@ -1,6 +1,7 @@
 # Copyright 2026 BWEALTHICS LLC
 # Part of l10n_ve_bw_fiscal_printer. License LGPL-3.
-from odoo import fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import ValidationError
 
 
 class PosConfig(models.Model):
@@ -40,7 +41,59 @@ class PosConfig(models.Model):
              "PA 0071 prohíbe entregar notas de consumo/pre-cuentas con "
              "montos como documento sustitutivo de la factura fiscal.",
     )
+    # Caja SIN máquina fiscal que factura sobre papelería de imprenta
+    # autorizada de forma sostenida (no como respaldo de un bridge caído).
+    # Con bridge configurado este selector se ignora: manda la máquina.
+    l10n_ve_paper_mode = fields.Selection(
+        [("contingencia", "Talonario (contingencia)"),
+         ("libre", "Formas libres")],
+        string="Facturación en papel (VE)",
+        help="Talonario: factura manuscrita (PA 0071 art. 11); el POS pide el "
+             "Nº de factura y el Nº de control preimpresos y genera la "
+             "factura en el diario de contingencia.\n"
+             "Formas libres: el POS pide solo el Nº de control preimpreso de "
+             "la hoja y factura en el diario de la caja (canal libre); el "
+             "contenido se imprime desde Odoo.\n"
+             "Vacío = sin salida en papel.",
+    )
+    l10n_ve_paper_batch_id = fields.Many2one(
+        "l10n.ve.paper.batch",
+        string="Lote de papelería activo",
+        domain="[('company_id', '=', company_id)]",
+        help="Talonario o caja de formas libres en uso: de aquí salen la "
+             "propuesta del siguiente correlativo, la validación de rango y "
+             "duplicados y el aviso de agotamiento.",
+    )
     # l10n_ve_machine_serial ya existe (l10n_ve_bw_fiscal_books): se reusa.
+
+    @api.constrains("l10n_ve_paper_mode", "l10n_ve_contingency_journal_id",
+                    "invoice_journal_id", "l10n_ve_paper_batch_id")
+    def _check_l10n_ve_paper_mode(self):
+        for config in self:
+            mode = config.l10n_ve_paper_mode
+            if not mode:
+                continue
+            if mode == "contingencia" and not config.l10n_ve_contingency_journal_id:
+                raise ValidationError(_(
+                    "La facturación por talonario exige asignar el diario de "
+                    "contingencia (canal 'contingencia') en la caja %s.",
+                    config.display_name))
+            if (mode == "libre" and config.invoice_journal_id
+                    .l10n_ve_emission_channel != "libre"):
+                raise ValidationError(_(
+                    "Con formas libres, el diario de facturación de la caja "
+                    "%s debe tener el canal de emisión 'Forma libre' (así el "
+                    "Nº de control queda write-once y el Libro de Ventas lo "
+                    "segrega en su sub-bloque).", config.display_name))
+            batch = config.l10n_ve_paper_batch_id
+            expected = "talonario" if mode == "contingencia" else "forma_libre"
+            if batch and batch.type != expected:
+                raise ValidationError(_(
+                    "El lote de papelería '%(batch)s' no corresponde al modo "
+                    "de la caja %(config)s: se esperaba uno de tipo "
+                    "'%(expected)s'.",
+                    batch=batch.display_name, config=config.display_name,
+                    expected=expected))
 
     def l10n_ve_get_ves_rate(self):
         """Bolívares por 1 unidad de la moneda de la compañía, a la tasa BCV

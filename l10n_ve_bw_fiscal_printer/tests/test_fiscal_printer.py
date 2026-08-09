@@ -1,7 +1,7 @@
 # Copyright 2026 BWEALTHICS LLC
 # Part of l10n_ve_bw_fiscal_printer. License LGPL-3.
 from odoo import Command, fields
-from odoo.exceptions import AccessError, UserError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import TransactionCase, tagged
 
 
@@ -339,3 +339,97 @@ class TestFiscalPrinter(TransactionCase):
         self.assertEqual(move.l10n_ve_fiscal_number, "00001327")
         self.assertEqual(move.l10n_ve_fiscal_machine_serial, "Z1B0012345")
         self.assertEqual(move.journal_id, journal)
+
+    # ------------------------------------------------------------------
+    # Modo papel permanente (talonario / formas libres, caja sin bridge)
+    # ------------------------------------------------------------------
+    def test_paper_mode_constraints(self):
+        # Talonario exige diario de contingencia en la caja.
+        with self.assertRaises(ValidationError):
+            self.config.l10n_ve_paper_mode = "contingencia"
+        journal = self.env["account.journal"].create({
+            "name": "Contingencia Papel",
+            "code": "CONTP",
+            "type": "sale",
+            "company_id": self.company.id,
+            "l10n_ve_emission_channel": "contingencia",
+        })
+        self.config.l10n_ve_contingency_journal_id = journal
+        self.config.l10n_ve_paper_mode = "contingencia"
+        # Formas libres exigen canal 'libre' en el diario de facturación.
+        with self.assertRaises(ValidationError):
+            self.config.l10n_ve_paper_mode = "libre"
+        self.config.invoice_journal_id.l10n_ve_emission_channel = "libre"
+        self.config.l10n_ve_paper_mode = "libre"
+
+    def test_paper_mode_batch_type_must_match(self):
+        journal = self.env["account.journal"].create({
+            "name": "Contingencia Papel 2",
+            "code": "CONT2",
+            "type": "sale",
+            "company_id": self.company.id,
+            "l10n_ve_emission_channel": "contingencia",
+        })
+        self.config.l10n_ve_contingency_journal_id = journal
+        batch = self.env["l10n.ve.paper.batch"].create({
+            "type": "forma_libre",
+            "company_id": self.company.id,
+            "control_from": "000001",
+        })
+        with self.assertRaises(ValidationError):
+            self.config.write({
+                "l10n_ve_paper_mode": "contingencia",
+                "l10n_ve_paper_batch_id": batch.id,
+            })
+
+    def test_contingency_invoice_carries_paper_number(self):
+        journal, session = self._contingency_session()
+        order = self._pos_order(
+            session,
+            l10n_ve_contingency_control="000021",
+            l10n_ve_contingency_invoice_number="000009",
+        )
+        vals = order._prepare_invoice_vals()
+        self.assertEqual(vals["journal_id"], journal.id)
+        self.assertEqual(vals["l10n_ve_control_number"], "000021")
+        self.assertEqual(vals["l10n_ve_paper_number"], "000009")
+        self.assertEqual(vals["ref"], "Contingencia F-000009 C-000021")
+        move = order._create_invoice(vals)
+        self.assertEqual(move.l10n_ve_paper_number, "000009")
+        self.assertEqual(move.l10n_ve_control_number, "000021")
+
+    def test_libre_mode_routes_to_invoice_journal(self):
+        journal = self.config.invoice_journal_id
+        journal.l10n_ve_emission_channel = "libre"
+        self.config.l10n_ve_paper_mode = "libre"
+        session = self._backend_session()
+        order = self._pos_order(session, l10n_ve_contingency_control="000044")
+        vals = order._prepare_invoice_vals()
+        self.assertEqual(vals["journal_id"], journal.id,
+                         "Forma libre factura en el diario normal de la caja")
+        self.assertEqual(vals["l10n_ve_control_number"], "000044")
+        self.assertTrue(vals["ref"].startswith("Forma libre"))
+        self.assertFalse(vals.get("l10n_ve_paper_number"))
+        # El create pasa: en canal libre la primera transcripción es legítima.
+        move = order._create_invoice(vals)
+        self.assertEqual(move.l10n_ve_control_number, "000044")
+
+    def test_paper_mode_invoice_requires_partner(self):
+        _journal, session = self._contingency_session()
+        self.config.l10n_ve_paper_mode = "contingencia"
+        order = self._pos_order(
+            session, partner_id=False,
+            l10n_ve_contingency_control="000055")
+        with self.assertRaises(UserError):
+            order._prepare_invoice_vals()
+
+    def test_pos_config_paper_fields_reach_the_pos(self):
+        # pos.config usa el default del mixin ([] = todos los campos). Si el
+        # core algún día lo vuelve whitelist, este test avisa que hay que
+        # añadir un override con los campos que leen los t-if del frontend.
+        fields_list = self.env["pos.config"]._load_pos_data_fields(self.config)
+        self.assertTrue(
+            not fields_list
+            or {"l10n_ve_paper_mode", "l10n_ve_paper_batch_id",
+                "l10n_ve_bridge_url", "l10n_ve_contingency_journal_id"}
+            <= set(fields_list))

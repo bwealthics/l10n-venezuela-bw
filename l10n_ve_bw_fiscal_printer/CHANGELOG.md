@@ -4,6 +4,52 @@ Todas las modificaciones relevantes de este módulo. El formato sigue
 [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el versionado es
 el de Odoo: `19.0.MAJOR.MINOR.PATCH`, donde `19.0` es la serie de Odoo.
 
+## [19.0.1.3.1] - 2026-08-09
+
+### Corregido
+
+- Botón **Contingencia** del POS: `TextInputPopup` de Odoo 19 no acepta la prop
+  `body` (solo `title`, `placeholder`, `startingValue`, `rows`, `buttons`,
+  `size`). Se eliminó `body` en:
+  - `control_buttons.js` → activar contingencia de sesión
+  - `order_payment_validation.js` → captura del Nº de Control en contingencia
+  La instrucción al cajero queda en `title` + `placeholder`. Sin este cambio
+  Owl lanzaba `Invalid props ... unknown key 'body'` y el botón no abría.
+
+## [19.0.1.3.0] - 2026-08-09
+
+### Añadido
+
+- **Modo papel permanente** para cajas SIN máquina fiscal
+  (`pos.config.l10n_ve_paper_mode`): `contingencia` (talonario manuscrito,
+  PA 0071 art. 11) o `libre` (formas libres). Con bridge configurado el
+  selector se ignora: manda la máquina. Constraints: talonario exige el
+  diario de contingencia; formas libres exigen canal `libre` en el diario de
+  facturación de la caja; el lote (`l10n_ve_paper_batch_id`) debe ser del
+  tipo del modo.
+- Captura en el POS vía patch de `askBeforeValidation` (corre ANTES de
+  `isOrderValid`, así el chequeo de cliente del core pasa con el partner ya
+  asignado): exige contingencia de sesión abierta (gerente) en modo
+  talonario, exige **cliente** (art. 13.7 PA 0071 — la factura sobre
+  formatos identifica al adquirente; NO existe el genérico "consumidor
+  final" de los tickets de máquina), pide Nº de factura + Nº de control del
+  talonario (solo control en formas libres) **prellenados** con
+  `l10n.ve.paper.batch.next_numbers()`, valida duplicados en memoria y
+  rango/duplicados contra el lote, y fuerza `to_invoice`: la factura nace en
+  el diario del canal al sincronizar. Idempotente en reintentos de sync.
+- `_prepare_invoice_vals`: rama de formas libres (control write-once en el
+  diario normal de la caja, ref "Forma libre C-…"); la rama de talonario
+  ahora propaga también `l10n_ve_paper_number` y ref
+  "Contingencia F-… C-…". Guard en servidor: orden en modo papel sin
+  partner → `UserError` claro ANTES del `address_get()` críptico del core.
+- Botón "Contingencia" visible también sin bridge cuando el modo es
+  talonario (antes exigía `l10n_ve_bridge_url`), con textos de activación
+  propios del modo permanente. Ajustes del POS: selector de modo, lote
+  activo y diario de contingencia (este último no estaba expuesto pese a
+  que el error del servidor remitía a Ajustes).
+- Grupo "Papelería fiscal" en el formulario de `pos.order` (Nº de factura y
+  Nº de control del talonario, antes invisibles).
+
 ## [19.0.1.2.1] - 2026-08-01
 
 ### Corregido

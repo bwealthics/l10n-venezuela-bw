@@ -71,14 +71,21 @@ patch(ControlButtons.prototype, {
             });
             return;
         }
+        // Caja sin bridge en modo talonario: la activación es el arranque
+        // diario del turno, no el reporte de una avería.
+        const permanent =
+            !this.pos.config.l10n_ve_bridge_url &&
+            this.pos.config.l10n_ve_paper_mode === "contingencia";
+        // Odoo 19 TextInputPopup no acepta prop `body` (solo title/placeholder/rows/…).
+        // La instrucción va en title + placeholder.
         const reason = await makeAwaitable(this.l10nVeDialog, TextInputPopup, {
-            title: _t("Activar contingencia"),
-            body: _t(
-                "Solo para cuando la máquina fiscal está averiada o sin " +
-                    "energía. Las ventas se facturarán a mano en el talonario " +
-                    "autorizado. Indique el motivo de la falla."
-            ),
-            placeholder: _t("Motivo de la falla"),
+            title: permanent
+                ? _t("Activar contingencia (caja sin máquina fiscal)")
+                : _t("Activar contingencia (falla de la máquina fiscal)"),
+            placeholder: permanent
+                ? _t("Motivo, ej. máquina fiscal no instalada")
+                : _t("Motivo de la falla, ej. sin energía / avería"),
+            rows: 3,
         });
         if (!reason) {
             return;
@@ -95,11 +102,17 @@ patch(ControlButtons.prototype, {
             session.l10n_ve_contingency_start = state.start;
             this.l10nVeDialog.add(AlertDialog, {
                 title: _t("Contingencia activa"),
-                body: _t(
-                    "A partir de ahora, si la máquina falla el sistema pedirá " +
-                        "el Nº de Control del talonario. Al cerrar la caja se " +
-                        "desactiva sola."
-                ),
+                body: permanent
+                    ? _t(
+                          "A partir de ahora, en cada cobro el sistema pedirá " +
+                              "los números del formato del talonario. Al cerrar " +
+                              "la caja se desactiva sola."
+                      )
+                    : _t(
+                          "A partir de ahora, si la máquina falla el sistema pedirá " +
+                              "el Nº de Control del talonario. Al cerrar la caja se " +
+                              "desactiva sola."
+                      ),
             });
         } catch (e) {
             this.l10nVeDialog.add(AlertDialog, {

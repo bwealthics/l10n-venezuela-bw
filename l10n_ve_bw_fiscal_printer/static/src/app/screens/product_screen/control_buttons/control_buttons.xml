@@ -18,8 +18,10 @@
             </button>
             <!-- Solo si la caja tiene diario de contingencia asignado. El
                  rótulo rojo permanente ES el control anti-abuso: mientras el
-                 modo esté activo se ve toda la jornada. -->
-            <button t-if="pos.config.l10n_ve_bridge_url and pos.config.l10n_ve_contingency_journal_id"
+                 modo esté activo se ve toda la jornada. Aparece con bridge
+                 (contingencia por falla de la máquina) o en modo talonario
+                 permanente (caja sin máquina fiscal). -->
+            <button t-if="(pos.config.l10n_ve_bridge_url or pos.config.l10n_ve_paper_mode == 'contingencia') and pos.config.l10n_ve_contingency_journal_id"
                     t-att-class="pos.session.l10n_ve_contingency_start ? 'btn btn-danger' : buttonClass"
                     t-on-click="() => this.clickContingencia()">
                 <i class="fa fa-exclamation-triangle me-1"/>

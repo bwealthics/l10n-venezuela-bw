@@ -47,6 +47,18 @@ class PosOrder(models.Model):
         return super()._create_invoice(move_vals)
 
     def _prepare_invoice_vals(self):
+        # Guard ANTES del super: sin partner, el core revienta en
+        # address_get() con un error críptico. Aplica solo a cajas en modo
+        # papel (art. 13.7 PA 0071: la factura sobre formatos identifica al
+        # adquirente como mínimo con su cédula — no existe el genérico
+        # "consumidor final" de los tickets de máquina fiscal). Cubre órdenes
+        # que llegan por IndexedDB sin pasar por la captura del frontend.
+        if (len(self) == 1 and not self.partner_id
+                and self.session_id.config_id.l10n_ve_paper_mode):
+            raise UserError(_(
+                "La factura en papel exige identificar al adquirente con "
+                "nombre y cédula o RIF (PA 0071 art. 13): asigne el cliente "
+                "a la orden %s antes de facturar.", self.name))
         vals = super()._prepare_invoice_vals()
         if len(self) != 1:
             # Factura consolidada (pos.make.invoice sobre varias órdenes): un
@@ -67,15 +79,35 @@ class PosOrder(models.Model):
                     orders=", ".join(fiscal_orders.mapped("name")),
                 ))
             return vals
+        config = self.session_id.config_id
+        if self.l10n_ve_contingency_control and config.l10n_ve_paper_mode == "libre":
+            # Formas libres: el control preimpreso de la hoja viaja en el
+            # mismo campo plano de la orden (es el único slot que sincroniza
+            # desde el POS), pero la factura va al diario NORMAL de la caja
+            # (canal libre, write-once) y el Nº de factura lo asigna la
+            # secuencia del diario.
+            vals.update({
+                "l10n_ve_control_number": self.l10n_ve_contingency_control,
+                "ref": "Forma libre C-%s" % self.l10n_ve_contingency_control,
+            })
+            return vals
         if self.l10n_ve_contingency_control:
             # Venta facturada a mano en el talonario: va a su propio diario,
             # que no lleva cadena de hash porque replica un papel que ya
-            # existe. El Nº de control es el del formato preimpreso.
-            journal = self.session_id.config_id.l10n_ve_contingency_journal_id
+            # existe. Nº de control y Nº de factura son los del formato
+            # preimpreso; el Libro de Ventas usa el segundo como Nº de
+            # documento.
+            journal = config.l10n_ve_contingency_journal_id
+            paper = self.l10n_ve_contingency_invoice_number
+            ref = ("Contingencia F-%s C-%s"
+                   % (paper, self.l10n_ve_contingency_control)
+                   if paper
+                   else "Contingencia %s" % self.l10n_ve_contingency_control)
             vals.update({
                 "journal_id": journal.id,
                 "l10n_ve_control_number": self.l10n_ve_contingency_control,
-                "ref": "Contingencia %s" % self.l10n_ve_contingency_control,
+                "l10n_ve_paper_number": paper or False,
+                "ref": ref,
             })
             return vals
         if self.l10n_ve_fiscal_number:
