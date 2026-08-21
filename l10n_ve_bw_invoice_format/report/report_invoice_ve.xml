@@ -41,6 +41,117 @@
             <span t-if="line._l10n_ve_is_exempt()" class="fw-bold"> (E)</span>
         </xpath>
 
+        <!-- Variables del bloque venezolano, junto a las display_* del core y
+             ANTES de la tabla de líneas: así son visibles tanto en el cuerpo
+             como en el pie, que es donde se usa `ve_bs`. Ambas se calculan una
+             sola vez por documento. -->
+        <xpath expr="//t[@t-set='display_taxes']" position="after">
+            <t t-set="display_ve_tax_detail"
+               t-value="display_taxes and o.company_id.l10n_ve_show_line_tax_detail and o.is_sale_document(include_receipts=True)"/>
+            <t t-set="ve_bs" t-value="o._l10n_ve_bs_amounts()"/>
+        </xpath>
+
+        <!-- Monto sin impuestos e impuesto por ítem. Van ANTES de la columna
+             de importe para que el ojo lea base → impuesto → total, y solo en
+             documentos de venta: la factura de proveedor la imprime el
+             proveedor, no nosotros. -->
+        <xpath expr="//th[@name='th_subtotal']" position="before">
+            <th name="th_l10n_ve_untaxed" t-if="display_ve_tax_detail"
+                t-attf-class="text-end text-nowrap {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
+                <span>Sin impuestos</span>
+            </th>
+            <th name="th_l10n_ve_tax" t-if="display_ve_tax_detail"
+                t-attf-class="text-end text-nowrap {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
+                <span>Impuesto</span>
+            </th>
+        </xpath>
+
+        <!-- Las filas de sección y subsección no llevan las dos celdas nuevas
+             (viven dentro de la rama `is_product`), así que su colspan tiene
+             que crecer en 2 o el subtotal de la sección se desalinea. El t-set
+             se ancla al nodo con `name`, no a la posición, para no depender
+             del orden de los t-set del core. -->
+        <xpath expr="//t[@name='account_invoice_line_accountable']" position="before">
+            <t t-set="line_colspan"
+               t-value="line_colspan + (2 if display_ve_tax_detail else 0)"/>
+        </xpath>
+
+        <xpath expr="//td[@name='td_subtotal']" position="before">
+            <td name="td_l10n_ve_untaxed" t-if="display_ve_tax_detail"
+                t-attf-class="text-end {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
+                <span t-if="not hide_prices" class="text-nowrap"
+                      t-field="line.price_subtotal">27.00</span>
+            </td>
+            <td name="td_l10n_ve_tax" t-if="display_ve_tax_detail"
+                t-attf-class="text-end {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
+                <span t-if="not hide_prices" class="text-nowrap"
+                      t-out="line.price_total - line.price_subtotal"
+                      t-options='{"widget": "monetary", "display_currency": o.currency_id}'>4.32</span>
+            </td>
+        </xpath>
+
+        <!-- Mismo par de celdas en la rama de líneas agrupadas (combos y
+             líneas con composición colapsada). Se replican las condiciones del
+             core para td_discount_grouped, y el colspan crece solo en las
+             filas que NO reciben celda. -->
+        <xpath expr="//td[@name='account_invoice_line_name_grouped_desktop']" position="before">
+            <t t-set="line_colspan"
+               t-value="line_colspan + (2 if display_ve_tax_detail and not (hide_details or grouped_line['display_type'] == 'product') else 0)"/>
+        </xpath>
+
+        <xpath expr="//td[@name='td_subtotal_grouped']" position="before">
+            <td name="td_l10n_ve_untaxed_grouped" colspan="1"
+                t-if="display_ve_tax_detail and (hide_details or grouped_line['display_type'] == 'product')"
+                t-attf-class="text-end {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
+                <span t-if="not hide_prices" class="text-nowrap"
+                      t-out="grouped_line['price_subtotal']"
+                      t-options='{"widget": "monetary", "display_currency": o.currency_id}'>27.00</span>
+            </td>
+            <td name="td_l10n_ve_tax_grouped" colspan="1"
+                t-if="display_ve_tax_detail and (hide_details or grouped_line['display_type'] == 'product')"
+                t-attf-class="text-end {{ 'd-none d-md-table-cell' if report_type == 'html' else '' }}">
+                <span t-if="not hide_prices" class="text-nowrap"
+                      t-out="grouped_line['price_total'] - grouped_line['price_subtotal']"
+                      t-options='{"widget": "monetary", "display_currency": o.currency_id}'>4.32</span>
+            </td>
+        </xpath>
+
+        <!-- Equivalente en bolívares, dentro de la MISMA tabla de totales: el
+             monto en Bs va junto al total, no en un anexo. Se añade al final
+             para quedar bajo el total y los pagos del core. -->
+        <xpath expr="//table[hasclass('o_total_table')]" position="inside">
+            <t t-if="ve_bs">
+                <tr class="border-black o_total" name="l10n_ve_bs_untaxed">
+                    <td><span>Monto sin impuestos en Bs</span></td>
+                    <td class="text-end">
+                        <span class="text-nowrap" t-out="ve_bs['untaxed']"
+                              t-options='{"widget": "monetary", "display_currency": ve_bs["currency"]}'>16.500,00</span>
+                    </td>
+                </tr>
+                <tr name="l10n_ve_bs_tax">
+                    <td><span>Impuestos en Bs</span></td>
+                    <td class="text-end">
+                        <span class="text-nowrap" t-out="ve_bs['tax']"
+                              t-options='{"widget": "monetary", "display_currency": ve_bs["currency"]}'>2.640,00</span>
+                    </td>
+                </tr>
+                <tr class="fw-bold" name="l10n_ve_bs_total">
+                    <td><span>Total en Bs</span></td>
+                    <td class="text-end">
+                        <span class="text-nowrap" t-out="ve_bs['total']"
+                              t-options='{"widget": "monetary", "display_currency": ve_bs["currency"]}'>19.140,00</span>
+                    </td>
+                </tr>
+                <tr t-if="ve_bs['show_residual']" class="fw-bold" name="l10n_ve_bs_residual">
+                    <td><span>Saldo pendiente en Bs</span></td>
+                    <td class="text-end">
+                        <span class="text-nowrap" t-out="ve_bs['residual']"
+                              t-options='{"widget": "monetary", "display_currency": ve_bs["currency"]}'>9.570,00</span>
+                    </td>
+                </tr>
+            </t>
+        </xpath>
+
         <!-- Datos de la imprenta autorizada (art. 7.14) y rango asignado.
              La norma exige ≥6pt para la imprenta; 8pt queda holgado. -->
         <xpath expr="//div[@id='total']" position="after">
@@ -63,6 +174,30 @@
                         <span t-field="o.company_id.l10n_ve_control_range_from">00-00000001</span>
                         al <span t-field="o.company_id.l10n_ve_control_range_to">00-00005000</span>
                     </span>
+                </div>
+            </div>
+        </xpath>
+
+        <!-- Nota de la tasa, SIEMPRE que se imprima el bloque en Bs: sin ella
+             el equivalente en bolívares no es verificable. Se ancla al bloque
+             de la imprenta —y no otra vez a #total— para que el orden no
+             dependa de en qué orden se apliquen los xpath. No se rotula la
+             fuente ("BCV") porque cuál moneda es la de referencia lo decide la
+             configuración; el nombre de la moneda y la fecha sí son ciertos
+             siempre. -->
+        <xpath expr="//div[@name='l10n_ve_printer_block']" position="before">
+            <div class="row mt-2" name="l10n_ve_bs_rate_note" t-if="ve_bs">
+                <!-- La puntuación va PEGADA al nodo que cierra cada tramo (sin
+                     salto de línea intermedio): QWeb conserva el espacio en
+                     blanco del XML y, partido en spans, el PDF salía con
+                     "777,4161 VES , vigente al 20-08-2026 .". -->
+                <div class="col-12" style="font-size:8pt;">
+                    Tasa de cambio aplicada: 1 <span t-out="o.currency_id.name">USD</span>
+                    = <span t-out="ve_bs['rate']"
+                            t-options='{"widget": "float", "precision": 4}'>777,4161</span>
+                    <span t-out="ve_bs['currency'].name">VES</span>, vigente al
+                    <span t-out="ve_bs['date'].strftime('%d-%m-%Y')">20-08-2026</span>.
+                    Los montos en bolívares se expresan convertidos a esa tasa.
                 </div>
             </div>
         </xpath>

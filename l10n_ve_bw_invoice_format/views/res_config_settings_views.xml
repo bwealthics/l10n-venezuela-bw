@@ -41,6 +41,27 @@
                         </div>
                     </setting>
                 </block>
+                <block title="Localización Venezuela — Comprobante"
+                       name="l10n_ve_bw_document_block">
+                    <setting id="l10n_ve_bw_bs_currency_setting"
+                             string="Equivalente en bolívares"
+                             company_dependent="1"
+                             help="Imprime al pie del comprobante el monto sin impuestos, los impuestos y el total en esta moneda, con la tasa vigente a la FECHA DEL DOCUMENTO, más una nota con esa tasa. Vacío: no se imprime el bloque. Se omite también cuando el comprobante ya está emitido en esa moneda.">
+                        <div class="content-group">
+                            <div class="row mt8">
+                                <label for="l10n_ve_bs_currency_id" string="Moneda"
+                                       class="col-lg-5 o_light_label"/>
+                                <field name="l10n_ve_bs_currency_id"
+                                       options="{'no_create': True, 'no_open': True}"/>
+                            </div>
+                        </div>
+                    </setting>
+                    <setting id="l10n_ve_bw_line_tax_detail_setting"
+                             company_dependent="1"
+                             help="Añade al cuerpo del comprobante las columnas «Sin impuestos» e «Impuesto» por ítem, antes del importe. Solo en documentos de venta y solo si alguna línea lleva impuesto.">
+                        <field name="l10n_ve_show_line_tax_detail"/>
+                    </setting>
+                </block>
             </xpath>
         </field>
     </record>

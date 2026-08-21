@@ -22,7 +22,7 @@ desarrollada y mantenida por [BWEALTHICS LLC](https://www.bwealthics.com).
 | `l10n_ve_bw_wh_islr` | Retenciones de ISLR, Unidad Tributaria histórica, comprobante y XML mensual | Decreto 1.808 · PA 0095/2009 | LGPL-3 |
 | `l10n_ve_bw_municipal` | Provisión mensual de patente de industria y comercio (alícuota, mínimo tributable en veces MMV) | Ordenanzas municipales · LOPPM | LGPL-3 |
 | `l10n_ve_bw_fiscal_books` | Libros de Compras y Ventas en XLSX, Nº de control, canal de emisión por diario, contingencia | Reglamento LIVA arts. 70–78 · PA 0071 | LGPL-3 |
-| `l10n_ve_bw_invoice_format` | Requisitos de forma del comprobante en el PDF (fecha/hora legal, marca «(E)», datos de imprenta) | PA 0071 · PA SNAT/2024/000102 | LGPL-3 |
+| `l10n_ve_bw_invoice_format` | Requisitos de forma del comprobante en el PDF (fecha/hora legal, marca «(E)», datos de imprenta), equivalente en Bs con nota de la tasa y desglose de impuesto por línea | PA 0071 · PA SNAT/2024/000102 · LIVA art. 25 | LGPL-3 |
 | `l10n_ve_bw_einvoice` | Conector de imprenta digital autorizada (núcleo + proveedor simulado) | PA SNAT/2024/000102 · PA 000121 | LGPL-3 |
 | `l10n_ve_bw_fiscal_printer` | Máquina fiscal en el POS vía bridge local (protocolo HKA) | PA 0071 (reporte Z) | LGPL-3 |
 | `l10n_ve_bw_compliance` | Paraguas: instala la suite y deja el audit log **suscrito** | PA SNAT/2024/000102 art. 18.7 | **AGPL-3** |

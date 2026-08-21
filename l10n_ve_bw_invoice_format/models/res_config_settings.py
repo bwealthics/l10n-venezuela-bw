@@ -18,3 +18,7 @@ class ResConfigSettings(models.TransientModel):
         related="company_id.l10n_ve_control_range_from", readonly=False)
     l10n_ve_control_range_to = fields.Char(
         related="company_id.l10n_ve_control_range_to", readonly=False)
+    l10n_ve_bs_currency_id = fields.Many2one(
+        related="company_id.l10n_ve_bs_currency_id", readonly=False)
+    l10n_ve_show_line_tax_detail = fields.Boolean(
+        related="company_id.l10n_ve_show_line_tax_detail", readonly=False)

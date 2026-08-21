@@ -14,6 +14,65 @@ class AccountMove(models.Model):
              "imprenta digital; bajo forma libre se transcribe del talonario.",
     )
 
+    def _l10n_ve_bs_amounts(self):
+        """Totales del documento expresados en bolívares, y la tasa aplicada.
+
+        Devuelve un dict vacío —y el QWeb no imprime nada— cuando no hay
+        moneda de referencia configurada, cuando el comprobante YA está en esa
+        moneda, o cuando no hay tasa a la fecha del documento. Preferible a
+        imprimir un cero: un comprobante fiscal con un equivalente en Bs mal
+        calculado es peor que uno sin él.
+
+        La fecha de conversión es la del documento (`invoice_date`), nunca
+        "hoy": el equivalente en Bs de una factura de julio no puede moverse
+        porque se reimprima en agosto. Por eso también se guarda `date` en el
+        resultado, que es lo que se rotula en la nota de la tasa.
+        """
+        self.ensure_one()
+        bs = self.company_id.l10n_ve_bs_currency_id
+        if not bs or bs == self.currency_id:
+            return {}
+        date = self.invoice_date or self.date or fields.Date.context_today(self)
+        company = self.company_id
+        # `res.currency._get_rates` termina en COALESCE(..., 1.0): una moneda
+        # SIN ninguna tasa cargada convierte a la par y en silencio. Sobre un
+        # comprobante fiscal eso imprime el total en dólares rotulado como
+        # bolívares, así que la ausencia de tasa se comprueba aparte —el valor
+        # de `rate` no la distingue de una paridad legítima 1:1—. El dominio de
+        # compañía es el mismo del core para no divergir de lo que él resuelve.
+        has_rate = self.env["res.currency.rate"].sudo().search_count([
+            ("currency_id", "=", bs.id),
+            ("company_id", "in", (False, company.root_id.id)),
+        ], limit=1)
+        if not has_rate:
+            return {}
+        # round=False: la tasa se rotula con sus decimales, no redondeada a los
+        # dos del bolívar.
+        rate = self.currency_id._convert(1.0, bs, company, date, round=False)
+        if not rate:
+            return {}
+
+        def to_bs(amount):
+            return self.currency_id._convert(amount, bs, company, date)
+
+        total = to_bs(self.amount_total)
+        residual = to_bs(self.amount_residual)
+        return {
+            "currency": bs,
+            "rate": rate,
+            "date": date,
+            "untaxed": to_bs(self.amount_untaxed),
+            "tax": to_bs(self.amount_tax),
+            "total": total,
+            "residual": residual,
+            # El saldo solo se imprime si de verdad dice algo: ni en la factura
+            # recién emitida (saldo == total) ni en la ya cobrada (saldo 0).
+            "show_residual": bool(
+                bs.compare_amounts(residual, total)
+                and bs.compare_amounts(residual, 0.0)
+            ),
+        }
+
     def _l10n_ve_legal_datetime(self):
         """Fecha —y hora, cuando se conoce— en el formato del art. 7.6 de la
         PA SNAT/2024/000102.

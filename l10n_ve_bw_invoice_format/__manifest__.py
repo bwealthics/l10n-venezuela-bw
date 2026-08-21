@@ -2,14 +2,15 @@
 # Part of l10n_ve_bw_invoice_format. License LGPL-3.
 {
     "name": "Venezuela — Formato Legal del Comprobante",
-    "version": "19.0.1.0.0",
+    "version": "19.0.1.1.0",
     "license": "LGPL-3",
     "author": "BWEALTHICS LLC",
     "website": "https://www.bwealthics.com",
     "category": "Accounting/Localizations",
     "countries": ["ve"],
     "summary": "Requisitos de forma de la factura: Nº de control, marca (E) de "
-               "exentos, fecha/hora legal y datos de la imprenta autorizada",
+               "exentos, fecha/hora legal, equivalente en Bs y datos de la "
+               "imprenta autorizada",
     "description": """
 Formato legal del comprobante (Venezuela)
 =========================================
@@ -26,6 +27,15 @@ SNAT/2011/00071 y la SNAT/2024/000102:
   Providencia de autorización (art. 7.14).
 - Etiqueta "RIF" en el país Venezuela, para que el RIF del comprador no salga
   rotulado como "Tax ID".
+
+Y dos añadidos de presentación, configurables por compañía:
+
+- Equivalente en bolívares de los totales (monto sin impuestos, impuestos,
+  total y saldo pendiente) a la tasa vigente a la FECHA DEL DOCUMENTO, con una
+  nota al pie que deja constancia de esa tasa.
+- Columnas "Sin impuestos" e "Impuesto" por ítem, activables y desactivables:
+  con precios IVA incluido el importe de la línea ya trae el impuesto dentro y
+  el comprador no puede desglosarlo.
 
 No depende del conector de imprenta digital: los datos de la imprenta son
 texto libre, idénticos bajo el régimen de imprenta física y el digital.

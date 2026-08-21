@@ -105,6 +105,85 @@ class TestInvoiceFormat(AccountTestInvoicingCommon):
         self.assertIn("00-00001234", html)
         self.assertIn("25-07-2026", html)
 
+    # --- Equivalente en bolívares -------------------------------------
+
+    def _setup_bs(self, rate=100.0):
+        """Bolívar de referencia con una tasa conocida a la fecha de la factura.
+
+        100 Bs/USD para que las cuentas del test se lean a simple vista:
+        150 sin impuestos → 15.000, 16 de IVA → 1.600, 166 de total → 16.600.
+        """
+        bs = self.env["res.currency"].with_context(
+            active_test=False).search([("name", "=", "VES")], limit=1)
+        bs.active = True
+        self.env["res.currency.rate"].create({
+            "name": self.invoice.invoice_date,
+            "currency_id": bs.id,
+            "rate": rate,
+            "company_id": self.company.id,
+        })
+        self.company.l10n_ve_bs_currency_id = bs
+        return bs
+
+    def test_bs_amounts_use_document_date(self):
+        self._setup_bs()
+        amounts = self.invoice._l10n_ve_bs_amounts()
+        self.assertEqual(amounts["rate"], 100.0)
+        self.assertEqual(amounts["date"], self.invoice.invoice_date)
+        self.assertEqual(amounts["untaxed"], self.invoice.amount_untaxed * 100)
+        self.assertEqual(amounts["tax"], self.invoice.amount_tax * 100)
+        self.assertEqual(amounts["total"], self.invoice.amount_total * 100)
+        # Factura emitida y sin cobrar: saldo == total, no aporta nada.
+        self.assertFalse(amounts["show_residual"])
+
+    def test_bs_amounts_empty_without_currency(self):
+        # Sin moneda de referencia no se imprime nada.
+        self.company.l10n_ve_bs_currency_id = False
+        self.assertFalse(self.invoice._l10n_ve_bs_amounts())
+
+    def test_bs_amounts_empty_when_document_already_in_bs(self):
+        # Convertir un comprobante a su propia moneda no aporta nada.
+        self.company.l10n_ve_bs_currency_id = self.invoice.currency_id
+        self.assertFalse(self.invoice._l10n_ve_bs_amounts())
+
+    def test_bs_amounts_empty_without_rate(self):
+        """Sin tasa cargada NO se imprime el bloque.
+
+        Es el caso que de verdad muerde: `_get_rates` acaba en
+        COALESCE(..., 1.0), así que una moneda sin tasas convierte a la par y
+        el comprobante saldría con el total en dólares rotulado «Bs».
+        """
+        bs = self.env["res.currency"].with_context(
+            active_test=False).search([("name", "=", "VES")], limit=1)
+        bs.rate_ids.unlink()
+        self.company.l10n_ve_bs_currency_id = bs
+        self.assertFalse(self.invoice._l10n_ve_bs_amounts())
+
+    def test_report_renders_bs_block_and_rate_note(self):
+        self._setup_bs()
+        html = self.env["ir.actions.report"]._render_qweb_html(
+            "account.report_invoice", self.invoice.ids)[0].decode()
+        self.assertIn("Total en Bs", html)
+        self.assertIn("Monto sin impuestos en Bs", html)
+        # La nota de la tasa va SIEMPRE con el bloque: sin ella el equivalente
+        # en bolívares no es verificable.
+        self.assertIn("Tasa de cambio aplicada", html)
+        self.assertIn("25-07-2026", html)
+
+    # --- Detalle de impuesto por línea --------------------------------
+
+    def test_report_line_tax_detail_toggle(self):
+        self.assertTrue(self.company.l10n_ve_show_line_tax_detail)
+        html = self.env["ir.actions.report"]._render_qweb_html(
+            "account.report_invoice", self.invoice.ids)[0].decode()
+        self.assertIn("Sin impuestos", html)
+        self.assertIn("Impuesto", html)
+
+        self.company.l10n_ve_show_line_tax_detail = False
+        html = self.env["ir.actions.report"]._render_qweb_html(
+            "account.report_invoice", self.invoice.ids)[0].decode()
+        self.assertNotIn("Sin impuestos", html)
+
     def test_report_renders_printer_block(self):
         self.company.write({
             "l10n_ve_printer_name": "Imprenta Digital de Prueba, C.A.",
