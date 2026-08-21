@@ -15,6 +15,8 @@
                 <field name="l10n_ve_control_number"
                        invisible="move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund')"
                        readonly="l10n_ve_emission_channel in ('mf', 'digital') or (l10n_ve_emission_channel == 'libre' and l10n_ve_control_number)"/>
+                <field name="l10n_ve_paper_number"
+                       invisible="l10n_ve_emission_channel != 'contingencia' or move_type not in ('out_invoice', 'out_refund')"/>
             </xpath>
         </field>
     </record>

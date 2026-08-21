@@ -4,6 +4,42 @@ Todas las modificaciones relevantes de este módulo. El formato sigue
 [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el versionado es
 el de Odoo: `19.0.MAJOR.MINOR.PATCH`, donde `19.0` es la serie de Odoo.
 
+## [19.0.1.4.1] - 2026-08-09
+
+### Corregido
+
+- `l10n.ve.paper.batch._used_numbers` leía el Nº de control de TODOS los
+  documentos de la compañía: en las compras ese campo guarda el correlativo
+  del PROVEEDOR (verificado en producción: una factura de proveedor con
+  control de 12 dígitos disparaba la propuesta del talonario a
+  `105704110714`). Ahora solo cuenta ventas (`out_invoice`/`out_refund`) en
+  diarios de canal papel (`contingencia`/`libre`), con prueba de regresión.
+
+## [19.0.1.4.0] - 2026-08-09
+
+### Añadido
+
+- Modelo **`l10n.ve.paper.batch`** ("Papelería fiscal (VE)", Contabilidad ›
+  Configuración): un registro por lote físico de imprenta autorizada —
+  talonario de contingencia o caja de formas libres — con datos de la imprenta
+  (razón social, RIF, Nº de autorización) y rangos de Nº de control y Nº de
+  factura. `next_numbers()` propone el siguiente correlativo leyendo los
+  números YA usados en `account.move` y `pos.order` (no un contador propio:
+  un salto o corrección manual no desincroniza nada), avisa cuando quedan
+  ≤10 formatos y reporta el lote agotado; `check_numbers()` valida prefijo,
+  rango y duplicados. ACL: lectura para usuarios POS/contables, escritura
+  para el gerente contable.
+- **`account.move.l10n_ve_paper_number`** ("Nº de factura (talonario)"): el
+  número de factura preimpreso del formato, solo canal contingencia. El
+  Libro de Ventas lo usa como **Nº de documento** en el bloque I cuando
+  existe (el documento legal es el papel, no el correlativo interno).
+- **`pos.order.l10n_ve_contingency_invoice_number`**: espejo plano en la
+  orden POS (viaja en el sync); el bloque III del Libro lo usa como Nº de
+  documento con fallback al nombre de la orden.
+- Constraint de unicidad en servidor para `l10n_ve_contingency_control` y
+  `l10n_ve_contingency_invoice_number` por compañía: un formato del talonario
+  = un solo documento (el POS solo validaba contra la sesión en memoria).
+
 ## [19.0.1.3.0] - 2026-08-01
 
 ### Añadido

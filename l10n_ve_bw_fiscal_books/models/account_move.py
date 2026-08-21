@@ -23,6 +23,19 @@ class AccountMove(models.Model):
         related="journal_id.l10n_ve_emission_channel",
         string="Canal de emisión (VE)",
     )
+    # Solo canal contingencia: en los demás el Nº de factura del documento es
+    # el propio name (secuencia del diario o correlativo de la máquina). Sin
+    # guard de edición a propósito — replica un papel manuscrito y comparte la
+    # política "editable siempre" del canal.
+    l10n_ve_paper_number = fields.Char(
+        string="Nº de factura (talonario)",
+        copy=False,
+        tracking=True,
+        index="btree_not_null",
+        help="Número de factura preimpreso del formato del talonario "
+             "autorizado (contingencia, PA 0071 art. 11). El Libro de Ventas "
+             "lo usa como Nº de documento en lugar del correlativo interno.",
+    )
 
     @api.model_create_multi
     def create(self, vals_list):

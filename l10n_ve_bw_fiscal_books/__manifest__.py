@@ -2,7 +2,7 @@
 # Part of l10n_ve_bw_fiscal_books. License LGPL-3.
 {
     "name": "Venezuela — Libros Fiscales de Compras y Ventas",
-    "version": "19.0.1.3.0",
+    "version": "19.0.1.4.1",
     "license": "LGPL-3",
     "author": "BWEALTHICS LLC",
     "website": "https://www.bwealthics.com",
@@ -31,6 +31,7 @@ bolívares a la tasa BCV de la fecha de cada documento.
     "data": [
         "security/ir.model.access.csv",
         "views/account_move_views.xml",
+        "views/paper_batch_views.xml",
         "views/res_config_settings_views.xml",
         "wizards/fiscal_book_wizard_views.xml",
         "views/account_journal_views.xml",

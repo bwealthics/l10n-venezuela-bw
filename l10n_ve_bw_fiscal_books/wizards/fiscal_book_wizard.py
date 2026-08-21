@@ -199,7 +199,9 @@ class L10nVeFiscalBookWizard(models.TransientModel):
             number = move.ref or move.name
             vals["wh_iva"], vals["wh_voucher"] = self._get_wh_iva_data(move, ves)
         else:
-            number = move.name
+            # En contingencia el documento legal es el formato del talonario:
+            # su Nº de factura preimpreso manda sobre el correlativo interno.
+            number = move.l10n_ve_paper_number or move.name
             vals["wh_iva"], vals["wh_voucher"] = \
                 self._get_wh_iva_received_data(move, ves)
         partner = move.commercial_partner_id
@@ -383,7 +385,10 @@ class L10nVeFiscalBookWizard(models.TransientModel):
             partner = order.partner_id
             vals.update({
                 "date": day,
-                "number": order.name or "",
+                # El Nº de documento es el de la factura del talonario; el
+                # nombre de la orden queda como respaldo para datos viejos.
+                "number": order.l10n_ve_contingency_invoice_number
+                or order.name or "",
                 "control": order.l10n_ve_contingency_control or "",
                 "partner": partner.name or "CONSUMIDOR FINAL",
                 "vat": partner.vat or "",

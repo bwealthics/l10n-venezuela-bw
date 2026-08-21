@@ -601,3 +601,181 @@ class TestFiscalBooks(AccountTestInvoicingCommon):
         self.assertIn("  Emitidas por máquina fiscal", values)
         self.assertIn("  Emitidas en contingencia (talonario)", values)
         self.assertIn("00-00003333", values)
+
+    # ------------------------------------------------------------------
+    # Papelería fiscal preimpresa (l10n.ve.paper.batch) y Nº de factura
+    # del talonario en el Libro de Ventas
+    # ------------------------------------------------------------------
+    def _make_batch(self, **extra):
+        vals = {
+            "type": "talonario",
+            "company_id": self.company.id,
+            "control_from": "000001",
+            "control_to": "000050",
+            "invoice_from": "000001",
+            "invoice_to": "000050",
+            "printer_name": "Imprenta de Prueba, C.A.",
+        }
+        vals.update(extra)
+        return self.env["l10n.ve.paper.batch"].create(vals)
+
+    def _contingency_journal(self):
+        return self.env["account.journal"].create({
+            "name": "Contingencia Batch Test",
+            "code": "CONTB",
+            "type": "sale",
+            "company_id": self.company.id,
+            "default_account_id": self.invoice.journal_id.default_account_id.id,
+            "l10n_ve_emission_channel": "contingencia",
+        })
+
+    def test_paper_batch_range_constraints(self):
+        with self.assertRaises(ValidationError):
+            self._make_batch(control_from="SIN-DIGITOS-")
+        with self.assertRaises(ValidationError):
+            self._make_batch(control_from="000010", control_to="000005")
+        with self.assertRaises(ValidationError):
+            self._make_batch(control_from="A-000001", control_to="B-000050")
+        with self.assertRaises(ValidationError):
+            self._make_batch(invoice_from=False)
+        # forma_libre no exige rango de facturas
+        self._make_batch(type="forma_libre", invoice_from=False,
+                         invoice_to=False)
+
+    def test_paper_batch_next_numbers(self):
+        batch = self._make_batch()
+        res = batch.next_numbers()
+        self.assertEqual(res["control"], "000001")
+        self.assertEqual(res["invoice"], "000001")
+        self.assertFalse(res.get("error"))
+        # Números usados en documentos reales mueven la propuesta.
+        journal = self._contingency_journal()
+        move = self.env["account.move"].create({
+            "move_type": "out_invoice",
+            "partner_id": self.partner.id,
+            "invoice_date": self.date_to,
+            "journal_id": journal.id,
+            "l10n_ve_control_number": "000007",
+            "l10n_ve_paper_number": "000003",
+            "invoice_line_ids": [Command.create({
+                "name": "Venta talonario",
+                "quantity": 1.0,
+                "price_unit": 10.0,
+                "tax_ids": [Command.set(self.sale_tax.ids)],
+            })],
+        })
+        move.action_post()
+        res = batch.next_numbers()
+        self.assertEqual(res["control"], "000008")
+        self.assertEqual(res["invoice"], "000004")
+        # Las órdenes POS aún no facturadas también cuentan como usadas.
+        order = self._create_pos_order(
+            "ORD/BATCH/1", fields.Datetime.now())
+        order.write({"l10n_ve_contingency_control": "000012",
+                     "l10n_ve_contingency_invoice_number": "000011"})
+        res = batch.next_numbers()
+        self.assertEqual(res["control"], "000013")
+        self.assertEqual(res["invoice"], "000012")
+        # El Nº de control de una factura de PROVEEDOR (correlativo del
+        # proveedor, mismo campo) no pertenece al talonario: no debe mover
+        # la propuesta aunque el rango del lote sea abierto.
+        bill = self.env["account.move"].create({
+            "move_type": "in_invoice",
+            "partner_id": self.vendor.id,
+            "invoice_date": self.date_to,
+            "ref": "FACT-PROV-9999",
+            "l10n_ve_control_number": "105704110713",
+            "invoice_line_ids": [Command.create({
+                "name": "Compra con control del proveedor",
+                "quantity": 1.0,
+                "price_unit": 10.0,
+                "tax_ids": [Command.set(self.purchase_tax.ids)],
+            })],
+        })
+        bill.action_post()
+        open_batch = self._make_batch(control_to=False, invoice_to=False)
+        res = open_batch.next_numbers()
+        self.assertEqual(res["control"], "000013")
+        self.assertEqual(res["invoice"], "000012")
+
+    def test_paper_batch_exhaustion_and_warning(self):
+        batch = self._make_batch(control_to="000002", invoice_to="000002")
+        # Quedan ≤ 10 formatos: la propuesta avisa sin bloquear.
+        res = batch.next_numbers()
+        self.assertTrue(res["warning"])
+        order = self._create_pos_order(
+            "ORD/BATCH/2", fields.Datetime.now())
+        order.write({"l10n_ve_contingency_control": "000002",
+                     "l10n_ve_contingency_invoice_number": "000002"})
+        res = batch.next_numbers()
+        self.assertTrue(res.get("error"), "Lote agotado: debe reportarlo")
+
+    def test_paper_batch_check_numbers(self):
+        batch = self._make_batch()
+        self.assertFalse(batch.check_numbers("000001", "000001"))
+        # Prefijo distinto al del lote
+        self.assertTrue(batch.check_numbers("A-000001", "000001"))
+        # Fuera de rango
+        self.assertTrue(batch.check_numbers("000001", "000099"))
+        # Ya usado
+        order = self._create_pos_order(
+            "ORD/BATCH/3", fields.Datetime.now())
+        order.write({"l10n_ve_contingency_control": "000020"})
+        self.assertTrue(batch.check_numbers("000001", "000020"))
+
+    def test_pos_contingency_numbers_unique(self):
+        o1 = self._create_pos_order("ORD/DUP/1", fields.Datetime.now())
+        o1.write({"l10n_ve_contingency_control": "000040",
+                  "l10n_ve_contingency_invoice_number": "000041"})
+        o2 = self._create_pos_order("ORD/DUP/2", fields.Datetime.now())
+        # savepoint: el write fallido no debe dejar el valor duplicado en la
+        # transacción del test (la validación corre DESPUÉS de escribir).
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            o2.write({"l10n_ve_contingency_control": "000040"})
+        with self.assertRaises(ValidationError), self.env.cr.savepoint():
+            o2.write({"l10n_ve_contingency_invoice_number": "000041"})
+        # El mismo valor re-escrito sobre la MISMA orden no es duplicado
+        o1.write({"l10n_ve_contingency_control": "000040"})
+
+    def test_sale_book_uses_paper_number_as_document(self):
+        # Bloque I: en contingencia el Nº de documento es el del talonario.
+        journal = self._contingency_journal()
+        move = self.env["account.move"].create({
+            "move_type": "out_invoice",
+            "partner_id": self.partner.id,
+            "invoice_date": self.date_to,
+            "journal_id": journal.id,
+            "l10n_ve_control_number": "000021",
+            "l10n_ve_paper_number": "000009",
+            "invoice_line_ids": [Command.create({
+                "name": "Venta talonario",
+                "quantity": 1.0,
+                "price_unit": 25.0,
+                "tax_ids": [Command.set(self.sale_tax.ids)],
+            })],
+        })
+        move.action_post()
+        wizard = self._make_wizard("sale")
+        ves = wizard._get_ves_currency()
+        row = wizard._prepare_move_row(move, ves)
+        self.assertEqual(row["number"], "000009")
+        self.assertEqual(row["control"], "000021")
+        # Sin Nº de talonario, el documento sigue siendo el correlativo Odoo.
+        row = wizard._prepare_move_row(self.invoice, ves)
+        self.assertEqual(row["number"], self.invoice.name)
+
+    def test_contingency_block_uses_invoice_number(self):
+        # Bloque III (orden POS sin factura): el Nº de documento es el Nº de
+        # factura del talonario, con fallback al nombre de la orden.
+        order = self._create_pos_order(
+            "ORD/CONT/9",
+            self._local_to_utc(datetime.combine(self.date_to, time(12, 0))))
+        order.write({"l10n_ve_contingency_control": "000030",
+                     "l10n_ve_contingency_invoice_number": "000031"})
+        self.pos_session.sudo().write({"state": "closed"})
+        wizard = self._make_wizard("sale")
+        ves = wizard._get_ves_currency()
+        rows = wizard._get_pos_contingency_rows(ves)
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["number"], "000031")
+        self.assertEqual(rows[0]["control"], "000030")
