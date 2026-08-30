@@ -2,7 +2,7 @@
 # Part of l10n_ve_bw_einvoice. License LGPL-3.
 {
     "name": "Venezuela — Conector de Imprenta Digital",
-    "version": "19.0.1.1.0",
+    "version": "19.0.2.0.0",
     "license": "LGPL-3",
     "author": "BWEALTHICS LLC",
     "website": "https://www.bwealthics.com",
@@ -27,17 +27,22 @@ Soporta proveedores síncronos (devuelven el Nº de control en la emisión, como
 The Factory HKA) y asíncronos (hay que consultarlo después, como Unidigital):
 de ahí el estado intermedio "Enviado, sin Nº de control" y el cron de consulta.
 
-**Estado**: se entrega el núcleo y el proveedor SIMULADO. El adaptador real
-está pendiente de contratar la imprenta y recibir su documentación,
-credenciales de QA y URL de producción. El cron viene DESACTIVADO.
+**Estado**: incluye el núcleo, el proveedor SIMULADO y el adaptador de
+**The Factory HKA** (REST: /api/Autenticacion, /api/Emision, /api/Anular),
+escrito contra su wiki pública. En pruebas apunta solo al ambiente demo del
+proveedor; la URL de producción se configura al recibir el contrato. Quedan
+por confirmar contra el catálogo de HKA los códigos de tipo de documento,
+de impuesto y de tipo de venta. El cron viene DESACTIVADO.
 """,
     "depends": ["l10n_ve_bw_invoice_format"],
+    "external_dependencies": {"python": ["requests"]},
     "data": [
         "security/ir.model.access.csv",
         "data/ir_cron.xml",
         "views/account_move_views.xml",
         "views/edoc_log_views.xml",
         "views/res_config_settings_views.xml",
+        "wizard/l10n_ve_edoc_cancel_wizard_views.xml",
     ],
     "installable": True,
 }

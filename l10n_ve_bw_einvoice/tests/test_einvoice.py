@@ -165,6 +165,146 @@ class TestEinvoice(AccountTestInvoicingCommon):
         self.assertEqual(move.l10n_ve_edoc_state, "assigned")
         self.assertTrue(move.l10n_ve_control_number)
 
+    def test_document_vals_enriched_for_the_printer(self):
+        # Campos que la imprenta exige y el adaptador no puede inventar:
+        # hora de emisión, identificación partida, código/unidad/IVA por
+        # línea, subtotal, tipo de venta y formas de pago.
+        move = self._invoice()
+        vals = move._l10n_ve_edoc_document_vals()
+        self.assertRegex(vals["hora"], r"^\d{2}:\d{2}:\d{2}$")
+        self.assertEqual(vals["comprador"]["tipo_identificacion"], "J")
+        self.assertEqual(vals["comprador"]["numero_identificacion"],
+                         "987654321")
+        self.assertEqual(vals["nro_items"], 2)
+        self.assertAlmostEqual(vals["subtotal"], 150.0, places=2)
+        self.assertIn(vals["tipo_venta"], ("contado", "credito"))
+        gravada = next(ln for ln in vals["lineas"] if not ln["exento"])
+        self.assertAlmostEqual(gravada["iva"], 16.0, places=2)
+        self.assertAlmostEqual(gravada["total"], 116.0, places=2)
+        self.assertAlmostEqual(gravada["descuento_monto"], 0.0, places=2)
+        # Sin cobros conciliados no viajan formas de pago: las decide el
+        # adaptador con el tipo de venta.
+        self.assertEqual(vals["formas_pago"], [])
+
+    def test_cancel_requires_emitted_document(self):
+        # Nada que anular ante la imprenta si aún no se envió.
+        move = self._invoice()
+        with self.assertRaises(UserError):
+            move.action_l10n_ve_edoc_cancel()
+
+    def test_cancel_wizard_marks_cancelled_and_logs(self):
+        move = self._invoice()
+        move.action_l10n_ve_edoc_send()
+        wizard = self.env["l10n.ve.edoc.cancel.wizard"].create({
+            "move_id": move.id,
+            "reason": "Error en los datos del comprador (prueba)",
+        })
+        wizard.action_confirm()
+        self.assertEqual(move.l10n_ve_edoc_state, "cancelled")
+        log = self.env["l10n.ve.edoc.log"].search([
+            ("move_id", "=", move.id), ("endpoint", "=", "cancel")])
+        self.assertTrue(log)
+        self.assertTrue(log[0].ok)
+
+    def test_cancel_failure_keeps_state_and_logs(self):
+        # El fallo de la imprenta al anular NO revienta ni pierde el estado
+        # 'assigned'; queda en la bitácora y en el campo de error, igual que
+        # en el envío.
+        move = self._invoice()
+        move.action_l10n_ve_edoc_send()
+
+        def boom(self, move, reason):
+            raise ValueError("la imprenta no acepta la anulación")
+
+        self.patch(
+            type(self.env["l10n.ve.edoc.provider.dummy"]),
+            "_edoc_cancel", boom)
+        wizard = self.env["l10n.ve.edoc.cancel.wizard"].create({
+            "move_id": move.id, "reason": "prueba"})
+        result = wizard.action_confirm()
+        self.assertEqual(result["tag"], "display_notification")
+        self.assertEqual(move.l10n_ve_edoc_state, "assigned")
+        self.assertIn("no acepta", move.l10n_ve_edoc_error)
+        log = self.env["l10n.ve.edoc.log"].search([
+            ("move_id", "=", move.id), ("endpoint", "=", "cancel")])
+        self.assertFalse(log[0].ok)
+
+    def test_hka_url_resolution(self):
+        # En pruebas SIEMPRE demo (aunque haya URL configurada): imposible
+        # probar contra producción. En producción la URL es obligatoria.
+        provider = self.env["l10n.ve.edoc.provider.hka"]
+        self.company.l10n_ve_edoc_test = True
+        self.company.l10n_ve_edoc_url = "https://prod.example.com/"
+        self.assertEqual(provider._hka_base_url(self.company),
+                         "https://demoemisionv2.thefactoryhka.com.ve")
+        self.company.l10n_ve_edoc_test = False
+        self.assertEqual(provider._hka_base_url(self.company),
+                         "https://prod.example.com")
+        self.company.l10n_ve_edoc_url = False
+        with self.assertRaises(UserError):
+            provider._hka_base_url(self.company)
+
+    def test_hka_payload_maps_the_neutral_dict(self):
+        # Traducción dict neutro → dialecto HKA, sin red: montos como
+        # strings, comprador partido, desglose de IVA por código y forma de
+        # pago por defecto. Es el formato del wiki del proveedor.
+        move = self._invoice()
+        vals = move._l10n_ve_edoc_document_vals()
+        payload = self.env["l10n.ve.edoc.provider.hka"]._hka_payload(
+            move, vals)
+        doc = payload["documentoElectronico"]
+        ident = doc["encabezado"]["identificacionDocumento"]
+        self.assertEqual(ident["tipoDocumento"], "01")
+        self.assertEqual(ident["numeroDocumento"], move.name)
+        self.assertRegex(ident["horaEmision"], r"^\d{2}:\d{2}:\d{2}$")
+        comprador = doc["encabezado"]["comprador"]
+        self.assertEqual(comprador["tipoIdentificacion"], "J")
+        self.assertEqual(comprador["numeroIdentificacion"], "987654321")
+        totales = doc["encabezado"]["totales"]
+        self.assertEqual(totales["montoGravadoTotal"], "100.00")
+        self.assertEqual(totales["montoExentoTotal"], "50.00")
+        self.assertEqual(totales["totalIVA"], "16.00")
+        self.assertEqual(totales["totalAPagar"], "166.00")
+        self.assertEqual(
+            {imp["codigoTotalImp"] for imp in totales["impuestosSubtotal"]},
+            {"G", "E"})
+        self.assertTrue(totales["formasPago"],
+                        "sin cobros, viaja una forma de pago por el total")
+        self.assertEqual(totales["formasPago"][0]["monto"], "166.00")
+        self.assertEqual(len(doc["detallesItems"]), 2)
+        primera = doc["detallesItems"][0]
+        self.assertEqual(primera["numeroLinea"], "1")
+        self.assertEqual(primera["tasaIVA"], "16.00")
+        self.assertEqual(primera["valorIVA"], "16.00")
+        self.assertEqual(primera["codigoImpuesto"], "G")
+        # El equivalente en Bs viaja cuando la moneda del documento no es la
+        # de referencia configurada (aquí USD vs VES).
+        bs_currency = self.company.l10n_ve_bs_currency_id
+        if bs_currency and bs_currency != move.currency_id:
+            self.assertIn("totalesOtraMoneda", doc["encabezado"])
+            self.assertEqual(
+                doc["encabezado"]["totalesOtraMoneda"]["moneda"],
+                bs_currency.name)
+
+    def test_hka_payload_credit_note_references_affected(self):
+        invoice = self._invoice()
+        reversal = self.env["account.move.reversal"].with_context(
+            active_model="account.move", active_ids=invoice.ids,
+        ).create({
+            "journal_id": self.digital_journal.id,
+            "reason": "prueba anulación parcial",
+        })
+        refund = self.env["account.move"].browse(
+            reversal.reverse_moves()["res_id"])
+        vals = refund._l10n_ve_edoc_document_vals()
+        payload = self.env["l10n.ve.edoc.provider.hka"]._hka_payload(
+            refund, vals)
+        ident = payload["documentoElectronico"]["encabezado"][
+            "identificacionDocumento"]
+        self.assertEqual(ident["tipoDocumento"], "03")
+        self.assertEqual(ident["numeroFacturaAfectada"], invoice.name)
+        self.assertEqual(ident["montoFacturaAfectada"], "166.00")
+
     def test_provider_failure_does_not_break_accounting(self):
         # Un fallo del proveedor deja el documento en 'error' con su bitácora,
         # pero NUNCA tumba la factura ya contabilizada.

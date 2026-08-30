@@ -4,6 +4,53 @@ Todas las modificaciones relevantes de este módulo. El formato sigue
 [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el versionado es
 el de Odoo: `19.0.MAJOR.MINOR.PATCH`, donde `19.0` es la serie de Odoo.
 
+## [19.0.2.0.0] - 2026-08-30
+
+Adaptador real de **The Factory HKA** y cierre de las brechas detectadas al
+validar el módulo contra la documentación pública del proveedor
+(https://wiki.thefactoryhka.com.ve/doku.php?id=manual_de_integracion_venezuela).
+
+### Añadido
+
+- Proveedor `l10n.ve.edoc.provider.hka` («The Factory HKA»), escrito contra el
+  wiki del proveedor: `POST /api/Autenticacion` (token Bearer con vigencia de
+  12 h, cacheado por compañía en `ir.config_parameter` y renovado con margen
+  de 10 min o tras un 401), `POST /api/Emision` (Nº de control síncrono en
+  `resultado.numeroControl`) y `POST /api/Anular`. Montos como strings y
+  fechas `dd/mm/yyyy`, como en los ejemplos del wiki; poda recursiva de campos
+  vacíos antes de enviar. ⚠️ Los códigos de tipo de documento (01/02/03), de
+  impuesto (G/R/A/E) y el valor de `tipoDeVenta` quedan por confirmar contra
+  el catálogo que HKA entrega con las credenciales.
+- En pruebas (`l10n_ve_edoc_test`) el adaptador usa SIEMPRE la URL demo
+  documentada (`demoemisionv2.thefactoryhka.com.ve`); la URL configurada solo
+  aplica en producción y es obligatoria al desmarcar el ambiente de pruebas.
+- Dict neutro enriquecido con lo que la imprenta exige y el adaptador no puede
+  inventar: `hora` de emisión (zona horaria del usuario), `tipo_venta`
+  (contado/crédito según vencimiento), comprador con `tipo_identificacion` y
+  `numero_identificacion` partidos del RIF, `telefono`, líneas con `codigo`
+  (PLU), `unidad`, `descuento_monto`, `iva` y `total`, totales con `subtotal`
+  y `nro_items`, `formas_pago` desde los cobros conciliados, y
+  `tipo_cambio`/`totales_bs` (equivalente en la moneda de referencia de
+  `l10n_ve_bw_invoice_format`, art. 25 LIVA) cuando el documento no está en
+  bolívares. La NC/ND añade `comentario` (motivo) al documento afectado.
+- Anulación cableada de punta a punta: botón «Anular ante la imprenta»
+  (visible en estados enviado/asignado), wizard `l10n.ve.edoc.cancel.wizard`
+  que exige el motivo, `_l10n_ve_edoc_do_cancel()` con la misma filosofía del
+  envío (el fallo queda en bitácora y en el campo de error, nunca revienta la
+  transacción) y paso al estado «Anulado ante la imprenta», hasta ahora
+  inalcanzable.
+- Campo `l10n_ve_edoc_sucursal`: serie y sucursal por separado, como los trata
+  el proveedor en `identificacionDocumento`.
+- Pruebas nuevas: dict enriquecido, guardas y flujo del wizard de anulación
+  (éxito y fallo), resolución de URL demo/producción y traducción del payload
+  HKA (factura y nota de crédito) sin red.
+
+### Cambiado
+
+- Ayudas de configuración: la URL se rotula «URL (producción)» y el ambiente
+  de pruebas documenta que fuerza la URL demo del proveedor.
+- `external_dependencies`: se declara `requests`.
+
 ## [19.0.1.1.0] - 2026-08-01
 
 Primera versión publicada del módulo (commit `2eb7131`).

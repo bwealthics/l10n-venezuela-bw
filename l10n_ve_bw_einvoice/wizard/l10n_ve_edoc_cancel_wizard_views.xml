@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 BWEALTHICS LLC -->
+<odoo>
+    <record id="view_l10n_ve_edoc_cancel_wizard_form" model="ir.ui.view">
+        <field name="name">l10n.ve.edoc.cancel.wizard.form</field>
+        <field name="model">l10n.ve.edoc.cancel.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Anular ante la imprenta digital">
+                <div class="alert alert-warning" role="alert">
+                    Esto anula el documento ante la imprenta digital
+                    (queda sin efecto fiscal su Nº de control). NO anula el
+                    asiento contable: la nota de crédito o la cancelación en
+                    Odoo van aparte.
+                </div>
+                <group>
+                    <field name="move_id"/>
+                    <field name="reason"
+                           placeholder="Ej.: error en los datos del comprador"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object"
+                            string="Anular ante la imprenta" class="btn-danger"
+                            data-hotkey="q"/>
+                    <button string="Descartar" class="btn-secondary"
+                            special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

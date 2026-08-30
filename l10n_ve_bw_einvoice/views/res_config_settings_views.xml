@@ -19,7 +19,7 @@
                                 <field name="l10n_ve_edoc_provider"/>
                             </div>
                             <div class="row">
-                                <label for="l10n_ve_edoc_url" string="URL" class="col-lg-5 o_light_label"/>
+                                <label for="l10n_ve_edoc_url" string="URL (producción)" class="col-lg-5 o_light_label"/>
                                 <field name="l10n_ve_edoc_url"/>
                             </div>
                             <div class="row">
@@ -31,8 +31,12 @@
                                 <field name="l10n_ve_edoc_password" password="True"/>
                             </div>
                             <div class="row">
-                                <label for="l10n_ve_edoc_serie" string="Serie / sucursal" class="col-lg-5 o_light_label"/>
+                                <label for="l10n_ve_edoc_serie" string="Serie" class="col-lg-5 o_light_label"/>
                                 <field name="l10n_ve_edoc_serie"/>
+                            </div>
+                            <div class="row">
+                                <label for="l10n_ve_edoc_sucursal" string="Sucursal" class="col-lg-5 o_light_label"/>
+                                <field name="l10n_ve_edoc_sucursal"/>
                             </div>
                             <div class="row">
                                 <label for="l10n_ve_edoc_test" string="Ambiente de pruebas" class="col-lg-5 o_light_label"/>

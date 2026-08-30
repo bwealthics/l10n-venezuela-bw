@@ -21,6 +21,9 @@
                 <button name="action_l10n_ve_edoc_fetch" type="object"
                         string="Consultar Nº de control"
                         invisible="l10n_ve_edoc_state != 'sent'"/>
+                <button name="action_l10n_ve_edoc_cancel" type="object"
+                        string="Anular ante la imprenta"
+                        invisible="l10n_ve_edoc_state not in ('sent', 'assigned')"/>
             </xpath>
         </field>
     </record>
