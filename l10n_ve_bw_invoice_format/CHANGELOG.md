@@ -4,6 +4,17 @@ Todas las modificaciones relevantes de este módulo. El formato sigue
 [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el versionado es
 el de Odoo: `19.0.MAJOR.MINOR.PATCH`, donde `19.0` es la serie de Odoo.
 
+## [19.0.1.1.1] - 2026-10-09
+
+### Cambiado
+
+- **Pruebas compatibles con `l10n_ve_bw_dual_currency`**: las dos pruebas de la
+  conversión al vuelo (`test_bs_amounts_use_document_date` y
+  `test_report_renders_bs_block_and_rate_note`) se omiten cuando ese módulo está
+  instalado, porque reemplaza el cálculo por la tasa congelada en el asiento y el
+  bloque Bs por una tabla de tres columnas; sus propias pruebas cubren esa
+  variante. Sin cambios de código ni de datos.
+
 ## [19.0.1.1.0] - 2026-08-20
 
 Presentación del comprobante: equivalente en bolívares y desglose del impuesto

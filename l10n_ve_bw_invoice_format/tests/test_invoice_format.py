@@ -107,6 +107,13 @@ class TestInvoiceFormat(AccountTestInvoicingCommon):
 
     # --- Equivalente en bolívares -------------------------------------
 
+    def _skip_if_dual_currency(self):
+        """l10n_ve_bw_dual_currency reemplaza la conversión al vuelo por la tasa
+        congelada en el asiento y el bloque Bs por una tabla de 3 columnas; esas
+        variantes las cubren sus propias pruebas."""
+        if "l10n_ve_bs_rate" in self.env["account.move"]._fields:
+            self.skipTest("l10n_ve_bw_dual_currency instalado: lo cubren sus pruebas")
+
     def _setup_bs(self, rate=100.0):
         """Bolívar de referencia con una tasa conocida a la fecha de la factura.
 
@@ -126,6 +133,7 @@ class TestInvoiceFormat(AccountTestInvoicingCommon):
         return bs
 
     def test_bs_amounts_use_document_date(self):
+        self._skip_if_dual_currency()
         self._setup_bs()
         amounts = self.invoice._l10n_ve_bs_amounts()
         self.assertEqual(amounts["rate"], 100.0)
@@ -160,6 +168,7 @@ class TestInvoiceFormat(AccountTestInvoicingCommon):
         self.assertFalse(self.invoice._l10n_ve_bs_amounts())
 
     def test_report_renders_bs_block_and_rate_note(self):
+        self._skip_if_dual_currency()
         self._setup_bs()
         html = self.env["ir.actions.report"]._render_qweb_html(
             "account.report_invoice", self.invoice.ids)[0].decode()
