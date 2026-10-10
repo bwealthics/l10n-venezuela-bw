@@ -4,6 +4,14 @@ Todas las modificaciones relevantes de este módulo. El formato sigue
 [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el versionado es
 el de Odoo: `19.0.MAJOR.MINOR.PATCH`, donde `19.0` es la serie de Odoo.
 
+## [19.0.4.0.1] - 2026-10-10
+
+### Seguridad
+
+- **Inyección de fórmulas en el XLSX**: el libro se escribe con
+  `strings_to_formulas=False`. Un tercero o una etiqueta cuyo texto empiece
+  con «=» quedaba como fórmula y se ejecutaba al abrir el archivo.
+
 ## [19.0.4.0.0] - 2026-08-23
 
 Adaptación a la sentencia **SCS/TSJ N° 523 del 13-11-2025** (Bencomo vs.

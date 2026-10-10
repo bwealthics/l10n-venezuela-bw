@@ -109,7 +109,12 @@ class L10nVeLegalBooksWizard(models.TransientModel):
         warnings = wizard._compute_warnings(trial)
 
         output = io.BytesIO()
-        workbook = xlsxwriter.Workbook(output, {"in_memory": True})
+        # strings_to_formulas=False: nombres de terceros, etiquetas y
+        # referencias son texto libre; un valor que empiece con "=" se
+        # escribiría como fórmula y se ejecutaría al abrir el Excel
+        # (inyección de fórmulas). No se escriben fórmulas a propósito.
+        workbook = xlsxwriter.Workbook(
+            output, {"in_memory": True, "strings_to_formulas": False})
         try:
             fmts = wizard._get_formats(workbook)
             wizard._write_journal_sheet(workbook, fmts, journal, usd, bs)

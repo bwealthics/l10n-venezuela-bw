@@ -2,7 +2,7 @@
 # Part of l10n_ve_bw_dual_currency. License LGPL-3.
 {
     "name": "Venezuela — Doble Moneda (USD / Bs)",
-    "version": "19.0.1.1.0",
+    "version": "19.0.1.1.1",
     "license": "LGPL-3",
     "author": "BWEALTHICS LLC",
     "website": "https://www.bwealthics.com",

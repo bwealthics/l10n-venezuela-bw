@@ -61,7 +61,12 @@ class L10nVeFiscalBookWizard(models.TransientModel):
         self.ensure_one()
         ves = self._get_ves_currency()
         output = io.BytesIO()
-        workbook = xlsxwriter.Workbook(output, {"in_memory": True})
+        # strings_to_formulas=False: nombres de terceros, etiquetas y
+        # referencias son texto libre; un valor que empiece con "=" se
+        # escribiría como fórmula y se ejecutaría al abrir el Excel
+        # (inyección de fórmulas). No se escriben fórmulas a propósito.
+        workbook = xlsxwriter.Workbook(
+            output, {"in_memory": True, "strings_to_formulas": False})
         try:
             if self.book_type == "sale":
                 self._write_sale_book(workbook, ves)
