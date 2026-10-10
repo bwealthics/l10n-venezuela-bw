@@ -16,6 +16,7 @@ from dateutil.relativedelta import relativedelta
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
+from ..models.hr_payslip import PERIOD_RATIOS
 
 
 class L10nVeDeclaracionesWizard(models.TransientModel):
@@ -162,11 +163,18 @@ class L10nVeDeclaracionesWizard(models.TransientModel):
         for slip in self._slips(payment_period=True):
             month = (slip.l10n_ve_payment_date or slip.date_to).replace(day=1)
             buckets.setdefault((slip.employee_id, month), []).append(slip)
+        # Mismo switch que hr_payslip._ve_cepp_employer: la empresa que
+        # restringe el CEPP a la base salarial declara ESA base — de lo
+        # contrario la Forma 19 sumaría bonos/cesta/complemento y la columna
+        # de diferencia ordenaría un top-up que contradice su criterio.
+        flag = ("l10n_ve_in_pension_base"
+                if self.company_id.l10n_ve_cepp_include_nonsalarial
+                else "l10n_ve_salarial")
         rows = []
         for (emp, month), slips in sorted(
                 buckets.items(), key=lambda i: (i[0][1], i[0][0].name)):
             month_end = month + relativedelta(months=1, days=-1)
-            base = sum(self._sum(s, flag="l10n_ve_in_pension_base") for s in slips)
+            base = sum(self._sum(s, flag=flag) for s in slips)
             devengado = sum(self._sum(s, code="VE_CEPP_PAT") for s in slips)
             floor = Param._get_parameter_from_code(
                 "l10n_ve_imi_cepp_floor_usd", month_end)
@@ -217,7 +225,7 @@ class L10nVeDeclaracionesWizard(models.TransientModel):
                 continue
             # No sub-declarar por recibos prorrateados (ausencias/egreso):
             # al menos el salario contractual mensualizado
-            ratio = {"monthly": 1.0, "semi-monthly": 0.5}.get(
+            ratio = PERIOD_RATIOS.get(
                 emp.version_id.schedule_pay or "monthly", 1.0)
             monthly = max(
                 Provision._employee_monthly_normal(emp, self.date_to),

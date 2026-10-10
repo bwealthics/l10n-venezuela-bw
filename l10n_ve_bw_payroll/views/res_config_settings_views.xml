@@ -42,6 +42,10 @@
                             <label for="l10n_ve_prestaciones_mode" class="col-lg-5 o_light_label"/>
                             <field name="l10n_ve_prestaciones_mode"/>
                         </div>
+                        <div class="row">
+                            <label for="l10n_ve_cepp_include_nonsalarial" class="col-lg-5 o_light_label"/>
+                            <field name="l10n_ve_cepp_include_nonsalarial"/>
+                        </div>
                     </div>
                 </setting>
             </xpath>

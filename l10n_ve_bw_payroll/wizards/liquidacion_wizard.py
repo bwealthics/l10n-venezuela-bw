@@ -44,9 +44,22 @@ class L10nVeLiquidacionWizard(models.TransientModel):
     vac_frac = fields.Monetary(compute="_compute_amounts", string="Vacaciones fraccionadas")
     bvac_frac = fields.Monetary(compute="_compute_amounts", string="Bono vacacional fraccionado")
     util_frac = fields.Monetary(compute="_compute_amounts", string="Utilidades fraccionadas")
-    total = fields.Monetary(compute="_compute_amounts")
+    compensacion = fields.Monetary(
+        string="Compensación de pagos recibidos",
+        help="Anticipos de liquidación o bonificación especial YA pagados al "
+             "trabajador al cese, compensables contra el finiquito (SCS/TSJ "
+             "N° 523 del 13-11-2025, arts. 1331-1335 CC). El monto debe estar "
+             "debitado en 110202 (Cuentas por Cobrar Empleados); el recibo lo "
+             "acredita. Tope real: el NETO del recibo (tras ISLR/INCES) no "
+             "puede quedar negativo — el excedente no es recuperable por "
+             "nómina (irrenunciabilidad, art. 19 LOTTT). "
+             "NO incluya aquí los anticipos de prestaciones ya registrados en "
+             "el libro de garantía: esos ya redujeron el saldo.")
+    total = fields.Monetary(
+        compute="_compute_amounts",
+        help="Total a pagar, neto de la compensación de pagos recibidos.")
 
-    @api.depends("employee_id", "end_date")
+    @api.depends("employee_id", "end_date", "compensacion")
     def _compute_amounts(self):
         Provision = self.env["l10n.ve.payroll.provision"]
         Ledger = self.env["l10n.ve.prestaciones.line"]
@@ -125,16 +138,35 @@ class L10nVeLiquidacionWizard(models.TransientModel):
             wiz.util_frac = util_days * months_worked / 12.0 * daily_normal
             wiz.total = (wiz.garantia + wiz.prest_trim + wiz.prest_extra
                          + wiz.intereses + wiz.vac_frac + wiz.bvac_frac
-                         + wiz.util_frac)
+                         + wiz.util_frac - wiz.compensacion)
 
     def action_create_payslip(self):
         self.ensure_one()
-        if not self.total:
-            raise UserError(_("No hay montos que liquidar (¿fecha de ingreso cargada?)."))
-        # Guard de doble ejecución: un recibo VELIQ vigente o un cierre de
-        # libro previo del período de empleo actual bloquean la re-corrida.
+        # Sin fecha de ingreso _compute_amounts deja todo en 0 SIN restar la
+        # compensación: validarla primero, o un wizard con solo compensación
+        # crearía un recibo puro VE_LIQ_COMP (neto negativo) y cerraría el
+        # contrato.
         start = self.env["l10n.ve.payroll.provision"]._employee_start_date(
             self.employee_id)
+        if not start:
+            raise UserError(_(
+                "El trabajador no tiene fecha de ingreso cargada: no hay "
+                "conceptos que liquidar."))
+        bruto = self.total + self.compensacion
+        if not bruto:
+            raise UserError(_("No hay montos que liquidar."))
+        if self.compensacion < 0:
+            raise UserError(_(
+                "La compensación de pagos recibidos no puede ser negativa."))
+        if self.compensacion > bruto:
+            raise UserError(_(
+                "La compensación (%(comp)s) excede el total del finiquito "
+                "(%(bruto)s): la compensación cubre las acreencias laborales "
+                "hasta su concurrencia (SCS 523/2025); el excedente no puede "
+                "cobrarse por nómina.",
+                comp=self.compensacion, bruto=bruto))
+        # Guard de doble ejecución: un recibo VELIQ vigente o un cierre de
+        # libro previo del período de empleo actual bloquean la re-corrida.
         struct_liq = self.env.ref("l10n_ve_bw_payroll.structure_ve_liquidacion")
         if self.env["hr.payslip"].search_count([
                 ("employee_id", "=", self.employee_id.id),
@@ -163,6 +195,7 @@ class L10nVeLiquidacionWizard(models.TransientModel):
             "liq_vac": self.vac_frac,
             "liq_bvac": self.bvac_frac,
             "liq_util": self.util_frac,
+            "liq_comp": self.compensacion,
         }
         slip = self.env["hr.payslip"].create({
             "name": _("Liquidación — %s", self.employee_id.name),
@@ -181,6 +214,21 @@ class L10nVeLiquidacionWizard(models.TransientModel):
             ],
         })
         slip.compute_sheet()
+        # SCS 523/2025: la compensación opera hasta la CONCURRENCIA de lo
+        # pagadero. El guard del bruto no ve las deducciones del recibo
+        # (ISLR AR-I, INCES ½% sobre utilidades), así que el corte real es
+        # aquí: un neto negativo cobraría al trabajador por nómina (art. 19
+        # LOTTT) y dejaría 210508 con saldo deudor. El raise revierte el
+        # recibo completo.
+        net = sum(slip.line_ids.filtered(
+            lambda l: l.code == "NET").mapped("total"))
+        if slip.currency_id.compare_amounts(net, 0.0) < 0:
+            raise UserError(_(
+                "La compensación deja el finiquito con neto negativo "
+                "(%(net)s): el recibo deduce además ISLR e INCES. Redúzcala; "
+                "el excedente no es recuperable por nómina (SCS 523/2025, "
+                "irrenunciabilidad art. 19 LOTTT).",
+                net=slip.currency_id.round(net)))
         # Cerrar contrato y libro. ponytail: el cierre ocurre al CREAR el
         # recibo; si el borrador se descarta, borrar a mano las líneas de
         # cierre (el guard de arriba lo recuerda).

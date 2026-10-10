@@ -21,6 +21,7 @@
                         <field name="vac_frac"/>
                         <field name="bvac_frac"/>
                         <field name="util_frac"/>
+                        <field name="compensacion"/>
                         <field name="total" class="fw-bold"/>
                     </group>
                 </group>

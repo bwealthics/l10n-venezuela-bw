@@ -1,6 +1,6 @@
 # Copyright 2026 BWEALTHICS LLC
 # Part of l10n_ve_bw_payroll. License LGPL-3.
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tests import tagged
 
 from .common import PayslipVeCommon
@@ -86,6 +86,56 @@ class TestPayslipVe(PayslipVeCommon):
         self.assertAlmostEqual(self._line(slip, "VE_ISLR"), -60.0, delta=0.01)
         # CEPP: (500 + 100 + 40) × 9%
         self.assertAlmostEqual(self._line(slip, "VE_CEPP_PAT"), 57.60, delta=0.02)
+
+    def test_cesta_complement_recurring(self):
+        # SCS 523/2025 (art. 105.2 LOTTT): complemento en USD del beneficio
+        # de alimentación — no cotiza, no grava ISLR, fuera del NET; solo
+        # integra la base CEPP. Escenario INDULAC: 530 USD/mes.
+        self.version.l10n_ve_cesta_complement_usd = 530.0
+        slip = self._make_payslip()
+        self.assertAlmostEqual(self._line(slip, "VE_CESTA_COMP"), 530.0, places=2)
+        # Bases salariales intactas (mismos valores del escenario base)
+        self.assertAlmostEqual(self._line(slip, "VE_FAOV_EMP"), -5.625, delta=0.01)
+        self.assertAlmostEqual(self._line(slip, "VE_ISLR"), -50.0, delta=0.01)
+        self.assertAlmostEqual(self._line(slip, "VE_INCES_PAT"), 10.0, delta=0.01)
+        expected_net = 500.0 - 0.24 - 0.065 - 5.625 - 50.0
+        self.assertAlmostEqual(self._line(slip, "NET"), expected_net, delta=0.03)
+        # CEPP: (500 + cesta 40 + complemento 530) × 9%
+        self.assertAlmostEqual(self._line(slip, "VE_CEPP_PAT"), 96.30, delta=0.02)
+        # Contabilidad: mismo par que la cesta (610201 / 210502), 40 + 530
+        slip.action_payslip_done()
+        move = slip.move_id
+
+        def side(code):
+            lines = move.line_ids.filtered(lambda l: l.account_id.code == code)
+            return sum(lines.mapped("debit")), sum(lines.mapped("credit"))
+
+        self.assertAlmostEqual(side("610201")[0], 570.0, delta=0.02)
+        self.assertAlmostEqual(side("210502")[1], 570.0, delta=0.02)
+
+    def test_cesta_complement_input_oneoff(self):
+        slip = self._make_payslip(inputs={"cesta_comp": 100})
+        self.assertAlmostEqual(self._line(slip, "VE_CESTA_COMP"), 100.0, places=2)
+        # CEPP: (500 + 40 + 100) × 9%
+        self.assertAlmostEqual(self._line(slip, "VE_CEPP_PAT"), 57.60, delta=0.02)
+
+    def test_cesta_complement_cepp_salarial_base(self):
+        # Con la base CEPP restringida a lo salarial, el complemento sale
+        self.company.l10n_ve_cepp_include_nonsalarial = False
+        self.version.l10n_ve_cesta_complement_usd = 530.0
+        slip = self._make_payslip()
+        self.assertAlmostEqual(self._line(slip, "VE_CEPP_PAT"), 45.0, delta=0.02)
+
+    def test_cesta_complement_negative_raises(self):
+        with self.assertRaises(ValidationError):
+            self.version.l10n_ve_cesta_complement_usd = -10.0
+
+    def test_cesta_complement_quincenal(self):
+        # Monto MENSUAL prorrateado por período (mismo criterio que la cesta)
+        self.version.write({"schedule_pay": "semi-monthly", "wage": 250.0,
+                            "l10n_ve_cesta_complement_usd": 530.0})
+        q1 = self._make_payslip(date_from="2026-07-01", date_to="2026-07-15")
+        self.assertAlmostEqual(self._line(q1, "VE_CESTA_COMP"), 265.0, places=2)
 
     def test_missing_bcv_rate_raises(self):
         slip = self.env["hr.payslip"].create({

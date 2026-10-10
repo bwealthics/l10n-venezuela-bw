@@ -16,6 +16,16 @@ VE_BASE_FLAGS = {
     "pension": "l10n_ve_in_pension_base",      # CEPP 9% (todo pago, salarial o no)
 }
 
+# Fracción de mes que aporta cada período de pago: ratio = 12 / pagos_al_año.
+# Así ratio × pagos_al_año == 12 y los topes legales, la cesta y el CEPP
+# mensualizados cierran el año exacto. Semanal son 52 pagos → 12/52, NO 7/30:
+# el 7/30 anualiza 12,13 meses y sobrepaga ~1,1 %.
+PERIOD_RATIOS = {
+    "monthly": 1.0,        # 12 pagos/año
+    "semi-monthly": 0.5,   # 24 pagos/año
+    "weekly": 12.0 / 52,   # 52 pagos/año
+}
+
 
 class HrPayslip(models.Model):
     _inherit = "hr.payslip"
@@ -68,6 +78,24 @@ class HrPayslip(models.Model):
             net = sum(slip.line_ids.filtered(lambda l: l.code == "NET").mapped("total"))
             slip.l10n_ve_total_ves = net * (slip.l10n_ve_bcv_rate or 0.0)
 
+    def action_payslip_done(self):
+        # SCS 523/2025 / art. 19 LOTTT: un finiquito con neto negativo cobra
+        # al trabajador por nómina (210508 quedaría deudora). El wizard ya lo
+        # valida; este guard cubre el camino del input LIQ_COMP cargado a
+        # mano en el recibo.
+        for slip in self.filtered(lambda s: s.struct_id.code == "VELIQ"):
+            net = sum(slip.line_ids.filtered(
+                lambda l: l.code == "NET").mapped("total"))
+            if slip.currency_id.compare_amounts(net, 0.0) < 0:
+                raise UserError(_(
+                    "El finiquito de %(employee)s tiene neto negativo "
+                    "(%(net)s): la compensación u otras deducciones exceden "
+                    "lo pagadero (SCS 523/2025, irrenunciabilidad art. 19 "
+                    "LOTTT).",
+                    employee=slip.employee_id.name,
+                    net=slip.currency_id.round(net)))
+        return super().action_payslip_done()
+
     # ------------------------------------------------------------------
     # Helpers de cálculo — las reglas salariales son one-liners sobre esto.
     # Solo usan la intersección de APIs Enterprise/OCA (date_from/date_to,
@@ -115,14 +143,13 @@ class HrPayslip(models.Model):
     def _ve_period_ratio(self):
         # Fail loud ante frecuencias no soportadas: un default silencioso
         # desmensualizaría topes y cesta (p. ej. bi-weekly son 26 pagos/año,
-        # no 24 — soportarlo requiere ratio 12/26 y prorrateos documentados).
+        # no 24 — añadirlo es una línea en PERIOD_RATIOS: 12/26).
         sched = self._ve_version().schedule_pay or "monthly"
-        ratios = {"monthly": 1.0, "semi-monthly": 0.5}
-        if sched not in ratios:
+        if sched not in PERIOD_RATIOS:
             raise UserError(_(
                 "Frecuencia de pago '%s' no soportada por la nómina VE: use "
-                "mensual o quincenal (semi-monthly).", sched))
-        return ratios[sched]
+                "mensual, quincenal (semi-monthly) o semanal (weekly).", sched))
+        return PERIOD_RATIOS[sched]
 
     def _ve_mondays(self):
         """Lunes contenidos en [date_from, date_to] (semanas cotizadas IVSS)."""
@@ -318,6 +345,17 @@ class HrPayslip(models.Model):
         self._ve_require_usd()
         return self._ve_param("l10n_ve_cesta_ticket_usd") * self._ve_period_ratio()
 
+    def _ve_cesta_complement(self):
+        """Complemento mensual del beneficio de alimentación pactado en el
+        contrato: no remunerativo (art. 105.2 LOTTT, SCS 523 del 13-11-2025),
+        mismo tratamiento contable y de bases que la cesta legal."""
+        self.ensure_one()
+        amount = self._ve_version().l10n_ve_cesta_complement_usd or 0.0
+        if not amount:
+            return 0.0
+        self._ve_require_usd()
+        return amount * self._ve_period_ratio()
+
     # --- CEPP (Ley de Protección de las Pensiones 2024, 9% con piso IMI) ---
 
     def _ve_cepp_employer(self, result_rules):
@@ -329,6 +367,11 @@ class HrPayslip(models.Model):
         self._ve_require_usd()
         rate = self._ve_param("l10n_ve_cepp_pat_rate")
         floor_usd = self._ve_param("l10n_ve_imi_cepp_floor_usd")
-        monthly = self._ve_monthly_base("pension", result_rules)
+        # La inclusión de pagos no salariales (bonos, ayuda complementaria,
+        # cesta) en la base es una lectura legal que cada empresa decide con
+        # su asesor: ver res.company.l10n_ve_cepp_include_nonsalarial.
+        kind = ("pension" if self.company_id.l10n_ve_cepp_include_nonsalarial
+                else "cotizable")
+        monthly = self._ve_monthly_base(kind, result_rules)
         base = max(monthly, floor_usd)
         return base * rate * self._ve_period_ratio()

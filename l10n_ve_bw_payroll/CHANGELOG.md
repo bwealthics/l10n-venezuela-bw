@@ -4,6 +4,106 @@ Todas las modificaciones relevantes de este módulo. El formato sigue
 [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el versionado es
 el de Odoo: `19.0.MAJOR.MINOR.PATCH`, donde `19.0` es la serie de Odoo.
 
+## [19.0.4.0.0] - 2026-08-23
+
+Adaptación a la sentencia **SCS/TSJ N° 523 del 13-11-2025** (Bencomo vs.
+INDULAC): bonos periódicos en divisas con fin social = carácter social **no
+remunerativo** (art. 105.2 LOTTT) aunque sean regulares y desproporcionados
+frente al salario básico; y los pagos extraordinarios al cese son
+**compensables** contra las acreencias laborales.
+
+### Añadido
+
+- **Complemento de Cestaticket** (`VE_CESTA_COMP`, estructura Regular):
+  monto mensual en el contrato (`hr.version.l10n_ve_cesta_complement_usd`,
+  prorrateado por período como la cesta legal) y/o input puntual
+  `CESTA_COMP`. Categoría CESTA (fuera del GROSS y del NET), cuentas
+  610201/210502, sin ISLR ni cotización ni salario normal; solo integra la
+  base CEPP (respeta `l10n_ve_cepp_include_nonsalarial`). Cubre el patrón
+  validado por la 523 (complemento del beneficio de alimentación en USD) sin
+  pasar por `BONO_NS`, que grava ISLR.
+- **Compensación de pagos recibidos en el finiquito** (`VE_LIQ_COMP` +
+  input `LIQ_COMP`): campo nuevo en el asistente de liquidación para
+  anticipos de liquidación o bonificación especial ya pagados al cese.
+  Deducción que acredita **110202 Cuentas por Cobrar Empleados** (donde debe
+  estar debitado el pago). La compensación opera **hasta la concurrencia**:
+  el neto del recibo no puede quedar negativo —el excedente no es
+  recuperable por nómina (irrenunciabilidad, art. 19 LOTTT)— validado tras
+  el cálculo en el wizard y también en `action_payslip_done` de todo recibo
+  VELIQ (cubre el input cargado a mano; un `LIQ_COMP` negativo se ignora en
+  la regla). El wizard exige además fecha de ingreso antes de crear nada y
+  rechaza compensaciones negativas. 110202 se marca conciliable y se agrega
+  a `MISSING_ACCOUNTS` para compañías donde falte.
+- Constraint `l10n_ve_cesta_complement_usd >= 0`: un signo equivocado
+  pasaría inadvertido (la categoría CESTA no toca el neto) reduciendo
+  610201/210502 y la base CEPP en silencio.
+- `migrations/19.0.4.0.0/post-migration.py`: re-mapea cuentas por las
+  entradas nuevas de `RULE_ACCOUNTS` (`rule_ve_reg_cesta_comp`,
+  `rule_ve_liq_comp`). `post_init_hook` cubre desde esta versión también las
+  compañías VE con chart distinto de `ve_bw` ya mapeadas a mano
+  (SITELCA/generic_coa — señal: la regla básica con cuenta de débito
+  asignada): sin esto, cada upgrade dejaba las reglas nuevas sin cuentas en
+  esas bases y las líneas se omitían o caían al Adjustment Entry en
+  silencio.
+- Pruebas: complemento recurrente (bases salariales intactas, CEPP con y sin
+  no salariales, prorrateo quincenal, contabilidad 610201/210502, constraint
+  de negativos), input puntual, compensación en el finiquito (neto, ISLR
+  intacto, crédito a 110202), topes (bruto y neto negativo), wizard sin
+  fecha de ingreso, input `LIQ_COMP` directo (negativo ignorado y bloqueo al
+  confirmar con neto negativo) y Forma 19 con base salarial.
+
+### Corregido
+
+- **Forma 19 DPP ignoraba `l10n_ve_cepp_include_nonsalarial`** (preexistente
+  desde v3, material con el complemento): `_cepp_rows` sumaba siempre la
+  base `l10n_ve_in_pension_base` aunque el recibo cotizara sobre la base
+  salarial, inflando la cuota declarada y la columna de diferencia. Ahora
+  usa el mismo switch que `_ve_cepp_employer`.
+
+### Cambiado
+
+- Comentario y documentación de `VE_BONO_NS`: la 523 respalda el carácter no
+  cotizable de los bonos con fin social; **se mantiene** el gravamen ISLR y
+  CEPP como dirección conservadora (la 523 es doctrina laboral, no
+  tributaria). El fin social del bono debe quedar documentado: sin causa
+  social comprobable, el riesgo de recalificación del art. 104 sigue vivo.
+- README: la sección de workflows n8n pierde el rótulo «v4» (no es una
+  versión del módulo); «v4» pasa a ser esta adaptación jurisprudencial.
+
+## [19.0.3.2.0] - 2026-08-23
+
+Frecuencia semanal y base del CEPP configurable, ambas pedidas por SITELCA
+(obra TK-02) al preparar su primer cierre en Odoo.
+
+### Añadido
+
+- **Frecuencia de pago semanal** (`schedule_pay = weekly`). La tabla de
+  fracciones de mes pasa a ser una constante única, `PERIOD_RATIOS` en
+  `models/hr_payslip.py`, con la regla explícita **ratio = 12 / pagos_al_año**:
+  mensual 1,0 (12 pagos), quincenal 0,5 (24) y semanal **12/52** (52). Con eso
+  `ratio × pagos_al_año == 12` y los topes legales, la cesta ticket y el CEPP
+  mensualizados cierran el año exacto. Se descartó el 7/30 que usan muchas
+  hojas de cálculo: anualiza 12,13 meses y sobrepaga ~1,1 %.
+- `res.company.l10n_ve_cepp_include_nonsalarial` (Ajustes → Localización
+  Venezuela → Nómina Venezuela): decide si la base de la Contribución Especial
+  de Pensiones incluye los pagos **no salariales** (bonos, ayuda
+  complementaria, cesta ticket). **Default `True`**, que preserva el
+  comportamiento anterior; al desmarcarlo el CEPP usa la base salarial del
+  art. 104 LOTTT, la misma de IVSS/RPE/FAOV. Es una interpretación legal y
+  ahora la decide cada empresa con su asesor, en vez de venir fija en el código.
+
+### Cambiado
+
+- `payroll_provision.py` y `wizards/declaraciones_export.py` dejan de tener su
+  propia copia de las fracciones de período y consumen `PERIOD_RATIOS`. Antes
+  el wizard de declaraciones traía el diccionario en línea con un
+  `.get(..., 1.0)` que **degradaba en silencio a mensual** cualquier frecuencia
+  desconocida, mientras el recibo fallaba fuerte con la misma versión: el
+  devengo de pasivos y la declaración podían divergir del recibo.
+- El mensaje de error de frecuencia no soportada ahora nombra las tres válidas.
+  `bi-weekly` sigue sin soportarse a propósito (son 26 pagos/año, no 24);
+  añadirlo es una línea en `PERIOD_RATIOS`.
+
 ## [19.0.3.1.0] - 2026-08-01
 
 Correcciones de los pasivos laborales en el borde del egreso: la fracción del

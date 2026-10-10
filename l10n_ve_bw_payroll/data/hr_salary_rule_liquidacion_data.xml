@@ -122,6 +122,27 @@
         <field name="amount_python_compute">result = payslip._ve_islr(result_rules)</field>
     </record>
 
+    <!-- Compensación de pagos ya recibidos al cese (anticipos de liquidación,
+         bonificación especial): SCS/TSJ N° 523 del 13-11-2025 reitera que los
+         pagos extraordinarios del patrono al término de la relación son
+         compensables contra las acreencias laborales (arts. 1331-1335 CC).
+         El monto pagado debe estar debitado en 110202 (Cuentas por Cobrar
+         Empleados); esta deducción lo acredita al netear el finiquito. No
+         integra ninguna base: es un repago, no una percepción. -->
+    <record id="rule_ve_liq_comp" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_liquidacion"/>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="name">Compensación de Pagos Recibidos (SCS 523/2025)</field>
+        <field name="code">VE_LIQ_COMP</field>
+        <field name="sequence">112</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'LIQ_COMP' in inputs</field>
+        <field name="amount_select">code</field>
+        <!-- max(…, 0): un LIQ_COMP negativo cargado a mano sería un PAGO que
+             debita 110202; el tope superior lo valida el neto del recibo. -->
+        <field name="amount_python_compute">result = -max(inputs['LIQ_COMP'].amount, 0.0)</field>
+    </record>
+
     <record id="rule_ve_liq_net" model="hr.salary.rule">
         <field name="struct_id" ref="structure_ve_liquidacion"/>
         <field name="category_id" ref="hr_payroll.NET"/>

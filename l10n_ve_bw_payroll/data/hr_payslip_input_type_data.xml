@@ -41,6 +41,14 @@
         <field name="country_id" ref="base.ve"/>
         <field name="struct_ids" eval="[(4, ref('structure_ve_regular'))]"/>
     </record>
+    <!-- Complemento PUNTUAL del beneficio de alimentación (el recurrente va
+         en el contrato: hr.version.l10n_ve_cesta_complement_usd). -->
+    <record id="input_type_cesta_comp" model="hr.payslip.input.type">
+        <field name="name">Complemento de Cestaticket (no remunerativo)</field>
+        <field name="code">CESTA_COMP</field>
+        <field name="country_id" ref="base.ve"/>
+        <field name="struct_ids" eval="[(4, ref('structure_ve_regular'))]"/>
+    </record>
     <record id="input_type_embargo" model="hr.payslip.input.type">
         <field name="name">Retención Judicial (Manutención)</field>
         <field name="code">EMBARGO</field>
@@ -107,6 +115,12 @@
     <record id="input_type_liq_util" model="hr.payslip.input.type">
         <field name="name">Liquidación: Utilidades Fraccionadas</field>
         <field name="code">LIQ_UTIL</field>
+        <field name="country_id" ref="base.ve"/>
+        <field name="struct_ids" eval="[(4, ref('structure_ve_liquidacion'))]"/>
+    </record>
+    <record id="input_type_liq_comp" model="hr.payslip.input.type">
+        <field name="name">Liquidación: Compensación de Pagos Recibidos</field>
+        <field name="code">LIQ_COMP</field>
         <field name="country_id" ref="base.ve"/>
         <field name="struct_ids" eval="[(4, ref('structure_ve_liquidacion'))]"/>
     </record>

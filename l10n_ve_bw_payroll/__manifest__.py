@@ -14,6 +14,9 @@ Localización de Nómina de Venezuela
 * Aportes patronales: IVSS 9/10/11% por clase de riesgo, RPE 2%, FAOV 2%,
   INCES 2%, Contribución Especial de Pensiones 9% (piso IMI en USD).
 * Cesta ticket indexado en USD (no salarial, fuera del neto, base CEPP).
+* Complemento de cestaticket y bonos no remunerativos (art. 105.2 LOTTT,
+  SCS/TSJ N° 523 del 13-11-2025); compensación de pagos recibidos en el
+  finiquito.
 * Tasas y montos legales como hr.rule.parameter versionados por fecha —
   ninguna tasa está en el código.
 * Bimoneda: el recibo calcula y contabiliza en la moneda de la compañía (USD)
@@ -23,7 +26,7 @@ Localización de Nómina de Venezuela
 
 Fuente normativa: Odoo/Localización VE/Nomina-VE-Requerimientos-2026.md (bóveda).
 """,
-    "version": "19.0.3.1.0",
+    "version": "19.0.4.0.0",
     "license": "LGPL-3",
     "author": "BWEALTHICS LLC",
     "website": "https://www.bwealthics.com",

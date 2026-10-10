@@ -32,6 +32,15 @@ class ResCompany(models.Model):
         help="Dónde se deposita la garantía de prestaciones (elección escrita "
              "del trabajador, art. 143 LOTTT). En fideicomiso los intereses "
              "los genera el fondo: la corrida de provisiones no los acumula.")
+    l10n_ve_cepp_include_nonsalarial = fields.Boolean(
+        string="CEPP sobre pagos no salariales", default=True,
+        help="Si está marcado, la base de la Contribución Especial de "
+             "Pensiones (9%) incluye los pagos NO salariales (bonos, ayuda "
+             "complementaria, cesta ticket): lectura conservadora de la Ley de "
+             "Protección de las Pensiones (2024). Al desmarcarlo el CEPP se "
+             "calcula solo sobre conceptos salariales (art. 104 LOTTT), igual "
+             "base que IVSS/RPE/FAOV. Es una interpretación legal: confírmela "
+             "con su asesor laboral.")
     l10n_ve_utilidades_days = fields.Integer(
         string="Días de utilidades", default=30,
         help="Días de utilidades por convención o política de la compañía "

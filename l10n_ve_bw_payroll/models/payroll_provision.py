@@ -5,8 +5,9 @@ from dateutil.relativedelta import relativedelta
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
-# Frecuencias soportadas (mismo fail-loud que hr_payslip._ve_period_ratio)
-PERIOD_RATIOS = {"monthly": 1.0, "semi-monthly": 0.5}
+# Frecuencias soportadas: única fuente de verdad en hr_payslip, para que el
+# devengo de pasivos y el recibo no puedan divergir (mismo fail-loud).
+from .hr_payslip import PERIOD_RATIOS  # noqa: E402
 
 # Alícuotas mensuales LOTTT (localizacion_venezuela_odoo.md §6):
 # utilidades 2,5 d/mes (art. 131) · vacaciones 1,25 (art. 190) ·

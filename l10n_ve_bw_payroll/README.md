@@ -26,8 +26,8 @@ venezolana completa sobre `hr_payroll_account`.
   recibo art. 106. Sin tasa cargada → `UserError`, nunca 1:1.
 - **Parámetros legales** = `hr.rule.parameter(.value)` versionados por fecha
   (Nómina > Configuración > Parámetros de reglas). Ninguna tasa vive en el
-  código. Los cambios normativos los aplica un humano: por diseño, ningún
-  proceso automático escribe parámetros legales.
+  código. La actualización la avisa n8n por WhatsApp y la aplica un humano
+  (sin estado draft: se decidió que el scrape jamás escribe parámetros).
 - **Cuentas**: mapeadas por código del chart `ve_bw` en el `post_init_hook`.
   Para una compañía VE creada después de instalar:
   `from odoo.addons.l10n_ve_bw_payroll.hooks import map_rule_accounts;
@@ -120,14 +120,63 @@ venezolana completa sobre `hr_payroll_account`.
   montos exactos para transcribir; los TXT oficiales (Banavih/TIUNA) se
   agregarán cuando haya una planilla real del cliente para validar layout.
 
-## Automatización de la carga de tasas
+## v4 — Bonos no remunerativos y compensación (SCS/TSJ 523 del 13-11-2025)
 
-Las tasas y topes legales se cargan como `hr.rule.parameter.value` versionados
-por fecha. La automatización de su carga (scraping del BCV, alertas de cambio
-normativo) queda **fuera del alcance de este módulo**: se resuelve con la
-herramienta de orquestación que cada implantación prefiera. El criterio de
-diseño es que ningún proceso automático escriba parámetros legales — siempre
-hay un humano en el loop.
+Sentencia **SCS/TSJ N° 523, 13-nov-2025** (Bencomo vs. INDULAC, exp.
+2025-24-058): los bonos periódicos **en divisas** con fin social —"bono
+complementario de cestaticket" (USD 530/mes) y "ayuda/bono de retención"
+(USD 370,64/mes)— son de **carácter social no remunerativo (art. 105.2
+LOTTT)** aunque sean regulares, permanentes y desproporcionados frente al
+salario básico. Además reitera que los **pagos extraordinarios al cese**
+(bonificación especial) son **compensables** contra las acreencias laborales
+(arts. 1331-1335 CC) y que el finiquito sin recíprocas concesiones NO hace
+cosa juzgada.
+
+- **`VE_CESTA_COMP` — Complemento de Cestaticket** (estructura Regular):
+  recurrente en el contrato (`hr.version.l10n_ve_cesta_complement_usd`,
+  USD/mes prorrateado por período) y/o puntual por input `CESTA_COMP`. Sigue
+  a la cesta legal en todo: categoría CESTA (fuera del GROSS/NET), cuentas
+  610201/210502, **sin ISLR, sin cotización, sin salario normal**; solo
+  integra la base CEPP (y sale de ella con
+  `l10n_ve_cepp_include_nonsalarial` desmarcado).
+- **`VE_BONO_NS` sin cambios de cálculo**: la 523 le da respaldo
+  jurisprudencial al carácter no cotizable; **mantiene ISLR y CEPP** como
+  dirección conservadora (la 523 es doctrina laboral, no tributaria — excluir
+  el ISLR es decisión de cada empresa con su asesor). ⚠️ El fin social del
+  bono debe estar documentado: sin causa social comprobable, el riesgo de
+  recalificación (art. 104) sigue vivo.
+- **`VE_LIQ_COMP` — Compensación de Pagos Recibidos** (estructura
+  Liquidación): campo «Compensación de pagos recibidos» en el asistente de
+  finiquito. Deducción que **acredita 110202** (Cuentas por Cobrar Empleados,
+  ahora conciliable) — el anticipo/bonificación debe estar debitado ahí.
+  **Tope real: el NETO del recibo ≥ 0** (la compensación opera hasta la
+  concurrencia; el bruto no ve ISLR/INCES) — validado tras `compute_sheet`
+  en el wizard Y al confirmar cualquier recibo VELIQ (cubre el input
+  `LIQ_COMP` cargado a mano, cuyo valor negativo además se ignora). NO
+  duplicar con los anticipos del libro de garantía, que ya reducen el saldo.
+- **Forma 19 DPP respeta `l10n_ve_cepp_include_nonsalarial`**: con la base
+  restringida a lo salarial, el export declara esa misma base (mismo switch
+  que `_ve_cepp_employer`); antes sumaba siempre la base pension y la
+  columna de diferencia ordenaba un top-up contradictorio.
+- ⚙️ Upgrade → `migrations/19.0.4.0.0/post-migration.py` re-mapea cuentas
+  (nuevas entradas en RULE_ACCOUNTS). `post_init_hook` ahora cubre también
+  las compañías con chart ≠ `ve_bw` ya mapeadas a mano (SITELCA/generic_coa,
+  señal: regla básica con cuenta de débito) y crea 110202 si falta.
+
+## Automatización de tasas (n8n/WAHA)
+
+- **Tasa BCV diaria**: workflows "MISOYMASA Tasa BCV" y "SITELCA Tasa BCV"
+  ya activos en el n8n de BWEALTHICS (cron diario en hora de Caracas; MISOYMASA a las 9:15, tras la publicación del BCV a las 9:00; ve.dolarapi.com,
+  guardas anti-salto >15%, error → WhatsApp). Es la tasa que congela cada
+  recibo.
+- **"VE Parametros Legales"** (wflow id `yWI1DCQ8L7XjIpXb`): cron diario
+  7:15 AM Caracas — detector de señales por Google News RSS (salario
+  mínimo / cestaticket / UT / IMI, dedupe por link) + recordatorio mensual
+  (día 3) de la tasa de prestaciones BCV. Avisa por WhatsApp al grupo
+  BWEALTHICS INTERNO; **NUNCA escribe parámetros en Odoo** (humano en el
+  loop). Script fuente: `Odoo/Localización VE/scripts/n8n_ve_params_workflow.py`
+  (re-ejecutar para actualizar; `--activate` para activarlo). Webhook:
+  `set_keys` / `dry_run` / `monthly_test`.
 
 ## Tests
 

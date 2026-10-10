@@ -14,6 +14,7 @@
                     <field name="l10n_ve_ari_percentage"/>
                     <field name="l10n_ve_ivss_contributor"/>
                     <field name="l10n_ve_cesta_ticket"/>
+                    <field name="l10n_ve_cesta_complement_usd"/>
                 </group>
             </group>
         </field>

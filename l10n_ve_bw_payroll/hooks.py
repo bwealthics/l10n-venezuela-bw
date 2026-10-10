@@ -28,6 +28,9 @@ RULE_ACCOUNTS = {
     "rule_ve_reg_comis": ("610105", None),
     "rule_ve_reg_bono_ns": ("610105", None),
     "rule_ve_reg_cesta": ("610201", "210502"),
+    # SCS 523/2025: complemento no remunerativo del beneficio de alimentación
+    # — mismo par contable que la cesta legal.
+    "rule_ve_reg_cesta_comp": ("610201", "210502"),
     "rule_ve_reg_ivss_emp": ("210503", None),
     "rule_ve_reg_rpe_emp": ("210505", None),
     "rule_ve_reg_faov_emp": ("210504", None),
@@ -69,6 +72,9 @@ RULE_ACCOUNTS = {
     "rule_ve_liq_util": ("210601", None),
     "rule_ve_liq_inces_util": ("210506", None),
     "rule_ve_liq_islr": ("210507", None),
+    # Deducción negativa → el core ACREDITA la cuenta del slot débito: limpia
+    # el anticipo/bonificación especial debitado en 110202 (SCS 523/2025).
+    "rule_ve_liq_comp": ("110202", None),
     "rule_ve_liq_cepp_pat": ("610305", "210510"),
     "rule_ve_liq_net": (None, "210508"),
 }
@@ -78,6 +84,7 @@ RULE_ACCOUNTS = {
 MISSING_ACCOUNTS = [
     ("610305", "Aporte Contribución Especial de Pensiones", "expense"),
     ("210510", "Contribución Especial de Pensiones por Pagar", "liability_current"),
+    ("110202", "Cuentas por Cobrar Empleados", "asset_current"),
 ]
 
 
@@ -119,8 +126,9 @@ def map_rule_accounts(env, company):
         rule.account_credit = _account(credit) if credit else False
 
     # Las cuentas crédito de las reglas NET deben ser conciliables para poder
-    # registrar el pago desde el payslip (exigencia de hr_payroll_account).
-    for net_code in ("210501", "210508"):
+    # registrar el pago desde el payslip (exigencia de hr_payroll_account);
+    # 110202 debe serlo para cruzar el anticipo contra su compensación.
+    for net_code in ("210501", "210508", "110202"):
         net_account = _account(net_code)
         if net_account and not net_account.reconcile:
             net_account.reconcile = True
@@ -128,9 +136,22 @@ def map_rule_accounts(env, company):
 
 def post_init_hook(env):
     companies = env["res.company"].search([("chart_template", "=", "ve_bw")])
+    # Compañías VE que operan el módulo sobre OTRO chart (p. ej. SITELCA en
+    # generic_coa, cuentas VE creadas a mano): la señal de que
+    # map_rule_accounts ya corrió allí es la regla básica con cuenta de
+    # débito mapeada. Sin este barrido, cada upgrade dejaría las reglas
+    # NUEVAS sin cuentas en esas bases — línea omitida del asiento o
+    # absorbida por el Adjustment Entry del diario, en silencio.
+    basic = env.ref("l10n_ve_bw_payroll.rule_ve_reg_basic",
+                    raise_if_not_found=False)
+    if basic:
+        others = env["res.company"].search(
+            [("chart_template", "!=", "ve_bw")])
+        companies |= others.filtered(
+            lambda c: basic.with_company(c).account_debit)
     if not companies:
         _logger.warning(
-            "l10n_ve_bw_payroll: ninguna compañía usa el chart ve_bw; "
-            "las cuentas de las reglas quedaron sin mapear.")
+            "l10n_ve_bw_payroll: ninguna compañía usa el chart ve_bw ni "
+            "tiene las reglas mapeadas; las cuentas quedaron sin mapear.")
     for company in companies:
         map_rule_accounts(env, company)

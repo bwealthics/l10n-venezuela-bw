@@ -97,8 +97,17 @@
         <field name="l10n_ve_in_pension_base" eval="True"/>
     </record>
 
-    <!-- No salarial (política de compañía, riesgo de recalificación art. 104
-         LOTTT documentado en la bóveda): no cotiza, pero grava ISLR y CEPP. -->
+    <!-- No salarial (art. 105 LOTTT): no cotiza, pero grava ISLR y CEPP.
+         Respaldo jurisprudencial: SCS/TSJ N° 523 del 13-11-2025 (INDULAC)
+         declaró NO remunerativos los bonos periódicos en divisas con fin
+         social (ayuda/bono de retención, complemento de alimentación) aun
+         siendo regulares y desproporcionados frente al salario básico. El
+         gravamen de ISLR se mantiene como dirección conservadora (la 523 es
+         doctrina laboral, no tributaria): excluirlo es decisión de cada
+         empresa con su asesor, documentada en la bóveda. -->
+    <!-- ⚠️ Riesgo residual de recalificación (art. 104): la 523 exige FIN
+         SOCIAL comprobable; un bono sin causa social documentada sigue
+         expuesto. -->
     <record id="rule_ve_reg_bono_ns" model="hr.salary.rule">
         <field name="struct_id" ref="structure_ve_regular"/>
         <field name="category_id" ref="hr_payroll.ALW"/>
@@ -125,6 +134,25 @@
         <field name="condition_python">result = version.l10n_ve_cesta_ticket</field>
         <field name="amount_select">code</field>
         <field name="amount_python_compute">result = payslip._ve_cesta_ticket()</field>
+        <field name="l10n_ve_in_pension_base" eval="True"/>
+    </record>
+
+    <!-- Complemento del beneficio de alimentación (SCS 523 del 13-11-2025,
+         art. 105.2 LOTTT): carácter social NO remunerativo. Sigue a la cesta
+         legal en todo — categoría CESTA (fuera del GROSS y del NET), cuentas
+         610201/210502, sin ISLR — y solo integra la base CEPP. Recurrente en
+         el contrato (l10n_ve_cesta_complement_usd, prorrateado por período)
+         y/o puntual por input CESTA_COMP. -->
+    <record id="rule_ve_reg_cesta_comp" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_regular"/>
+        <field name="category_id" ref="salary_rule_category_cesta"/>
+        <field name="name">Complemento de Cestaticket (art. 105.2 LOTTT)</field>
+        <field name="code">VE_CESTA_COMP</field>
+        <field name="sequence">51</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = bool(version.l10n_ve_cesta_complement_usd) or 'CESTA_COMP' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = payslip._ve_cesta_complement() + (inputs['CESTA_COMP'].amount if 'CESTA_COMP' in inputs else 0.0)</field>
         <field name="l10n_ve_in_pension_base" eval="True"/>
     </record>
 

@@ -16,6 +16,8 @@ class ResConfigSettings(models.TransientModel):
         related="company_id.l10n_ve_inces_contributor", readonly=False)
     l10n_ve_ivss_risk = fields.Selection(
         related="company_id.l10n_ve_ivss_risk", readonly=False)
+    l10n_ve_cepp_include_nonsalarial = fields.Boolean(
+        related="company_id.l10n_ve_cepp_include_nonsalarial", readonly=False)
     l10n_ve_utilidades_days = fields.Integer(
         related="company_id.l10n_ve_utilidades_days", readonly=False)
     l10n_ve_prestaciones_mode = fields.Selection(

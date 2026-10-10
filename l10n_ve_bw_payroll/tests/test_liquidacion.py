@@ -66,6 +66,80 @@ class TestLiquidacionVe(PayslipVeCommon):
         self.assertAlmostEqual(wiz.prest_trim, 281.25, delta=0.01)
         self.assertAlmostEqual(wiz.vac_frac, 125.0, delta=0.01)
 
+    def test_compensacion_523(self):
+        # SCS/TSJ 523 del 13-11-2025: la bonificación especial/anticipo pagado
+        # al cese es compensable contra el finiquito hasta su concurrencia.
+        # Escenario de referencia con garantía 100 (ver cabecera del archivo):
+        # bruto conceptos 1.229,17 − ISLR 66,67 − INCES 1,67 = neto 1.160,83.
+        self.Ledger.create({
+            "employee_id": self.employee.id, "date": "2026-07-31",
+            "concept": "garantia", "amount": 100.0,
+        })
+        wiz = self._wizard()
+        bruto = wiz.total
+        wiz.compensacion = 200.0
+        self.assertAlmostEqual(wiz.total, bruto - 200.0, delta=0.01)
+        action = wiz.action_create_payslip()
+        slip = self.env["hr.payslip"].browse(action["res_id"])
+        self.assertAlmostEqual(self._line(slip, "VE_LIQ_COMP"), -200.0, places=2)
+        # La compensación no toca las bases: ISLR e INCES iguales al escenario
+        self.assertAlmostEqual(self._line(slip, "VE_ISLR"), -66.67, delta=0.01)
+        self.assertAlmostEqual(self._line(slip, "NET"), 960.83, delta=0.03)
+        # Contabilidad: acredita 110202 (limpia el anticipo debitado allí)
+        slip.action_payslip_done()
+        cxc = slip.move_id.line_ids.filtered(
+            lambda l: l.account_id.code == "110202")
+        self.assertAlmostEqual(sum(cxc.mapped("credit")), 200.0, delta=0.01)
+        self.assertEqual(sum(cxc.mapped("debit")), 0.0)
+
+    def test_compensacion_bounds(self):
+        wiz = self._wizard()
+        bruto = wiz.total
+        wiz.compensacion = bruto + 10000.0
+        with self.assertRaises(UserError):
+            wiz.action_create_payslip()
+        wiz.compensacion = -5.0
+        with self.assertRaises(UserError):
+            wiz.action_create_payslip()
+
+    def test_compensacion_net_negativo_raises(self):
+        # comp < bruto pero > neto disponible tras ISLR/INCES: el corte real
+        # es NET >= 0 (bruto 1.229,17; neto disponible 1.160,83).
+        self.Ledger.create({
+            "employee_id": self.employee.id, "date": "2026-07-31",
+            "concept": "garantia", "amount": 100.0,
+        })
+        wiz = self._wizard()
+        wiz.compensacion = 1200.0
+        with self.assertRaises(UserError):
+            wiz.action_create_payslip()
+
+    def test_compensacion_sin_fecha_ingreso_raises(self):
+        # Sin fecha de ingreso el compute deja todo en 0 sin restar la
+        # compensación: el wizard debe cortar antes de crear nada.
+        emp = self.env["hr.employee"].create({
+            "name": "Sin Fecha de Ingreso", "company_id": self.company.id})
+        wiz = self.env["l10n.ve.liquidacion.wizard"].create({
+            "employee_id": emp.id, "end_date": "2026-09-30",
+            "compensacion": 100.0,
+        })
+        with self.assertRaises(UserError):
+            wiz.action_create_payslip()
+
+    def test_liq_comp_input_directo(self):
+        # Input directo en el recibo (sin wizard): un monto negativo se
+        # ignora (sería un pago que debita 110202)…
+        slip = self._make_payslip(struct=self.struct_liq,
+                                  inputs={"liq_vac": 100, "liq_comp": -50})
+        self.assertEqual(self._line(slip, "VE_LIQ_COMP"), 0.0)
+        # …y un comp mayor que lo pagadero deja NET < 0: la validación del
+        # recibo VELIQ lo bloquea aunque no haya pasado por el wizard.
+        slip2 = self._make_payslip(struct=self.struct_liq,
+                                   inputs={"liq_vac": 100, "liq_comp": 500})
+        self.assertLess(self._line(slip2, "NET"), 0.0)
+        with self.assertRaises(UserError):
+            slip2.action_payslip_done()
+
     def test_payslip_ledger_close_and_accounting(self):
         self.Ledger.create({
             "employee_id": self.employee.id, "date": "2026-07-31",

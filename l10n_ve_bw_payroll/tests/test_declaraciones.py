@@ -62,6 +62,15 @@ class TestDeclaracionesVe(PayslipVeCommon):
         self.assertAlmostEqual(r["cuota_usd"], 48.60, delta=0.03)
         self.assertAlmostEqual(r["diferencia_usd"], 0.0, delta=0.05)
 
+    def test_cepp_rows_salarial_base_toggle(self):
+        # Con la base CEPP restringida a lo salarial, la Forma 19 declara ESA
+        # base (mismo switch que el recibo): cesta/bonos/complemento fuera.
+        self.company.l10n_ve_cepp_include_nonsalarial = False
+        rows = self.wizard._cepp_rows()
+        self.assertEqual(len(rows), 1)
+        self.assertAlmostEqual(rows[0]["base_usd"], 500.0, delta=0.03)
+        self.assertAlmostEqual(rows[0]["cuota_usd"], 45.0, delta=0.03)
+
     def test_cepp_floor_aggregation(self):
         # Sueldo bajo pagado en quincenas: por recibo el piso se prorratea,
         # y la Forma 19 agrega el mes completo con el piso una sola vez.
