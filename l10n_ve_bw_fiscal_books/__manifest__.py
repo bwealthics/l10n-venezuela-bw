@@ -2,7 +2,7 @@
 # Part of l10n_ve_bw_fiscal_books. License LGPL-3.
 {
     "name": "Venezuela — Libros Fiscales de Compras y Ventas",
-    "version": "19.0.1.4.1",
+    "version": "19.0.1.5.0",
     "license": "LGPL-3",
     "author": "BWEALTHICS LLC",
     "website": "https://www.bwealthics.com",

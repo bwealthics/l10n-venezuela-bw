@@ -25,6 +25,19 @@ class TestFiscalBooks(AccountTestInvoicingCommon):
     def setUpClass(cls):
         super().setUpClass()
         cls.company = cls.company_data["company"]
+        # Tasa VES explícita de 1,0 (Bs = USD) ANTES de crear documentos: las
+        # cifras esperadas de estas pruebas son en "Bs a la par". Sin ella la
+        # conversión caía en el 1.0 implícito de `_get_rates` (COALESCE), y
+        # con l10n_ve_bw_dual_currency instalado —que congela la tasa al
+        # confirmar y nunca usa ese 1.0— los documentos quedarían sin tasa.
+        ves = cls.env["res.currency"].with_context(active_test=False).search(
+            [("name", "=", "VES")], limit=1)
+        cls.env["res.currency.rate"].create({
+            "name": "2000-01-01",
+            "currency_id": ves.id,
+            "rate": 1.0,
+            "company_id": cls.company.root_id.id,
+        })
         # POS access so the test methods can create/read pos.session/pos.order.
         cls.env.user.group_ids |= cls.env.ref("point_of_sale.group_pos_manager")
         country_ve = cls.env.ref("base.ve")

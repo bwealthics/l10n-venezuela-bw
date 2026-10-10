@@ -4,6 +4,26 @@ Todas las modificaciones relevantes de este módulo. El formato sigue
 [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el versionado es
 el de Odoo: `19.0.MAJOR.MINOR.PATCH`, donde `19.0` es la serie de Odoo.
 
+## [19.0.1.5.0] - 2026-10-09
+
+### Cambiado
+
+- `l10n.ve.fiscal.book.wizard`: nuevos hooks `_l10n_ve_line_ves(line, factor,
+  ves)` y `_l10n_ve_move_total_ves(move, ves)`, usados por `_prepare_move_row`
+  para la base por alícuota, el exento, el IVA y el total. Por defecto
+  convierten igual que antes (tasa de la fecha contable); el módulo
+  `l10n_ve_bw_dual_currency` los sobreescribe para tomar los Bs almacenados
+  en cada apunte y que los libros IVA cuadren con el Diario y el Mayor.
+- Nuevo hook `_l10n_ve_amount_ves(move, amount, ves)` para el IVA retenido al
+  proveedor: el módulo dual lo convierte a la tasa congelada del asiento, de
+  modo que la retención sea coherente con el IVA mostrado en la misma fila.
+- El IVA repartido entre varias alícuotas ya no pierde céntimos: la última
+  parte recibe el resto, y la suma de las partes es exactamente el apunte de
+  impuesto.
+- Sin el módulo dual el comportamiento es el mismo salvo redondeo de
+  céntimos: el exento ahora se convierte línea por línea (antes se convertía
+  la suma) y el IVA repartido entre alícuotas se redondea a la moneda Bs.
+
 ## [19.0.1.4.1] - 2026-08-09
 
 ### Corregido

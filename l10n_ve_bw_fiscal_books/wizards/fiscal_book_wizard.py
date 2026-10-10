@@ -105,6 +105,32 @@ class L10nVeFiscalBookWizard(models.TransientModel):
             return 0.0
         return currency._convert(amount, ves, self.company_id, date)
 
+    def _l10n_ve_line_ves(self, line, factor, ves):
+        """Bs de un apunte con el signo ``factor`` del libro.
+
+        Es un hook: el módulo de doble moneda lo sobreescribe para usar el
+        monto en Bs almacenado en el apunte (tasa congelada del asiento) y
+        que el libro cuadre al céntimo con el Diario y el Mayor. Aquí se
+        convierte por la tasa de la fecha contable, como siempre.
+        """
+        return self._to_ves(factor * line.balance, ves, line.move_id.date)
+
+    def _l10n_ve_move_total_ves(self, move, ves):
+        """Total del documento en Bs, siempre positivo (el signo lo pone el
+        llamador). Hook para el módulo de doble moneda, igual que arriba."""
+        return self._to_ves(abs(move.amount_total_signed), ves, move.date)
+
+    def _l10n_ve_amount_ves(self, move, amount, ves):
+        """Bs de un monto en moneda de la compañía ligado a ``move`` (p. ej.
+        el IVA retenido al proveedor).
+
+        Hook: con el módulo de doble moneda el IVA del libro sale a la tasa
+        congelada del asiento (fecha de factura); la retención debe usar esa
+        MISMA tasa o la fila mostraría una retención que ya no es 75 %/100 %
+        del IVA mostrado. Aquí se convierte por la tasa de la fecha contable.
+        """
+        return self._to_ves(amount, ves, move.date)
+
     @staticmethod
     def _rate_key(rate):
         for key, value in (("16", 16.0), ("8", 8.0), ("31", 31.0)):
@@ -160,7 +186,7 @@ class L10nVeFiscalBookWizard(models.TransientModel):
         # tax lines sumando tax_base_amount la duplicaría (cada impuesto
         # repite la base completa) y clasificaría el 15% como "16".
         tax_keys = {}  # tax.id -> {rate_key: base de sus líneas en esa combinación}
-        exempt = 0.0
+        exempt_ves = 0.0
         for line in move.invoice_line_ids.filtered(
                 lambda l: l.display_type == "product"):
             amount = factor * line.balance
@@ -169,10 +195,14 @@ class L10nVeFiscalBookWizard(models.TransientModel):
             leaf_taxes = (leaf_taxes - group_taxes) | group_taxes.children_tax_ids
             rate = round(sum(t.amount for t in leaf_taxes), 2)
             if not rate:
-                exempt += amount
+                # El exento se acumula por línea en Bs (antes se convertía
+                # la suma en moneda de la compañía): puede diferir en
+                # céntimos por el redondeo por línea, pero así cada línea
+                # coincide con su apunte en el Diario.
+                exempt_ves += self._l10n_ve_line_ves(line, factor, ves)
                 continue
             key = self._rate_key(rate)
-            vals["base_%s" % key] += self._to_ves(amount, ves, move.date)
+            vals["base_%s" % key] += self._l10n_ve_line_ves(line, factor, ves)
             for tax in leaf_taxes:
                 if tax.amount:
                     shares = tax_keys.setdefault(tax.id, {})
@@ -184,16 +214,30 @@ class L10nVeFiscalBookWizard(models.TransientModel):
         for line in move.line_ids.filtered("tax_line_id"):
             if not line.tax_line_id.amount:
                 continue
-            amount = factor * line.balance
+            amount_ves = self._l10n_ve_line_ves(line, factor, ves)
             shares = tax_keys.get(line.tax_line_id.id) or {
                 self._rate_key(line.tax_line_id.amount): 1.0}
             total_share = sum(shares.values())
-            for key, share in shares.items():
-                part = amount * share / total_share if total_share else 0.0
-                vals["tax_%s" % key] += self._to_ves(part, ves, move.date)
-        vals["exempt"] = self._to_ves(exempt, ves, move.date)
-        vals["total"] = sign * self._to_ves(
-            abs(move.amount_total_signed), ves, move.date)
+            # Reparto proporcional sobre el monto YA en Bs de la línea. Se
+            # redondean todas las partes menos la última, que recibe el
+            # resto: así la suma de las partes es EXACTAMENTE el apunte de
+            # impuesto (redondeado a la moneda Bs) y no se pierde ni sobra
+            # un céntimo (10,01 repartido 1:1 daría 5,005 + 5,005). Con un
+            # solo grupo (caso normal) la parte es el total y no hay ajuste.
+            target = ves.round(amount_ves)
+            keys = list(shares)
+            allocated = 0.0
+            for idx, key in enumerate(keys):
+                if idx == len(keys) - 1:
+                    part = target - allocated
+                else:
+                    part = ves.round(
+                        amount_ves * shares[key] / total_share
+                        if total_share else 0.0)
+                    allocated += part
+                vals["tax_%s" % key] += part
+        vals["exempt"] = exempt_ves
+        vals["total"] = sign * self._l10n_ve_move_total_ves(move, ves)
         doc_type, affected = self._get_doc_type(move)
         if move.move_type in ("in_invoice", "in_refund"):
             number = move.ref or move.name
@@ -235,7 +279,7 @@ class L10nVeFiscalBookWizard(models.TransientModel):
         amount = sum(
             voucher._l10n_ve_get_amount_for_move(move) for voucher in vouchers)
         numbers = ", ".join(n for n in vouchers.mapped("number") if n)
-        return self._to_ves(amount, ves, move.date), numbers
+        return self._l10n_ve_amount_ves(move, amount, ves), numbers
 
     def _get_wh_iva_received_data(self, move, ves):
         """IVA que NOS retuvieron los clientes (agentes de retención) al
