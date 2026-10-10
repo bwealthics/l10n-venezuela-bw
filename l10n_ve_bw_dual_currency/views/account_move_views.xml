@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 BWEALTHICS LLC -->
+<!-- Part of l10n_ve_bw_dual_currency. License LGPL-3. -->
+<odoo>
+    <!--
+        Formulario de factura/asiento: tasa Bs congelada, avisos de tasa
+        desactualizada o ausente, saldo Bs y columnas Bs por línea.
+        Todos los xpath cuelgan de name/id estables del core (19.0).
+    -->
+    <record id="view_move_form_dual_currency" model="ir.ui.view">
+        <field name="name">account.move.form.dual.currency</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Campos auxiliares: los modificadores invisible= y los Monetary
+                 en Bs necesitan que el cliente los tenga cargados. -->
+            <xpath expr="//field[@name='company_currency_id']" position="after">
+                <field name="l10n_ve_bs_currency_id" invisible="1"/>
+                <field name="l10n_ve_bs_rate_missing" invisible="1"/>
+                <field name="l10n_ve_bs_rate_outdated" invisible="1"/>
+            </xpath>
+
+            <!-- Avisos sobre la tasa, arriba de la hoja, junto a las alertas del core. -->
+            <xpath expr="//form/sheet" position="before">
+                <!-- Amarillo: borrador cuya tasa guardada ya no coincide con la
+                     tabla (cargaron o corrigieron la tasa del día después). -->
+                <div class="alert alert-warning d-flex align-items-center gap-2 w-100"
+                     role="alert" name="l10n_ve_bs_rate_outdated_alert"
+                     invisible="state != 'draft' or not l10n_ve_bs_rate_outdated">
+                    <span>La tasa Bs guardada en este borrador ya no coincide con la tasa vigente para su fecha.</span>
+                    <button name="action_l10n_ve_bs_refresh_rate" type="object"
+                            string="Recalcular tasa" class="btn btn-link p-0"/>
+                </div>
+                <!-- Rojo: no existe ninguna tasa; los montos en Bs no se calculan
+                     (no se inventa una conversión a la par). -->
+                <div class="alert alert-danger w-100" role="alert"
+                     name="l10n_ve_bs_rate_missing_alert"
+                     invisible="not l10n_ve_bs_rate_missing">
+                    No hay tasa de cambio a Bs para la fecha de este documento: los montos en Bs no se pueden calcular.
+                    Cargue la tasa del día en Contabilidad &gt; Configuración &gt; Monedas.
+                </div>
+            </xpath>
+
+            <!-- Tasa BCV del documento en una fila propia de la cabecera, debajo
+                 del diario/moneda: dentro de la columna de la moneda la frase se
+                 partía palabra por palabra. -->
+            <xpath expr="//div[@name='journal_div']" position="after">
+                <field name="l10n_ve_bs_rate_label"
+                       invisible="not l10n_ve_bs_currency_id or l10n_ve_bs_currency_id == company_currency_id or l10n_ve_bs_rate_missing or not l10n_ve_bs_rate"/>
+            </xpath>
+
+            <!-- Saldo Bs junto al saldo pendiente del pie de totales. -->
+            <xpath expr="//field[@name='amount_residual'][@class='oe_subtotal_footer_separator']" position="after">
+                <field name="l10n_ve_amount_residual_bs"
+                       invisible="not l10n_ve_bs_currency_id or l10n_ve_bs_currency_id == currency_id or l10n_ve_bs_rate_missing"/>
+            </xpath>
+
+            <!-- Líneas de factura: moneda Bs para los Monetary y las dos columnas. -->
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='company_currency_id']" position="after">
+                <field name="l10n_ve_bs_currency_id" column_invisible="True"/>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='price_unit']" position="after">
+                <field name="l10n_ve_price_unit_bs" optional="hide"
+                       column_invisible="not parent.l10n_ve_bs_currency_id or parent.l10n_ve_bs_currency_id == parent.currency_id"
+                       readonly="1"/>
+            </xpath>
+            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='price_total']" position="after">
+                <field name="l10n_ve_price_subtotal_bs" optional="show"
+                       column_invisible="not parent.l10n_ve_bs_currency_id or parent.l10n_ve_bs_currency_id == parent.currency_id"
+                       readonly="1"/>
+            </xpath>
+
+            <!-- Apuntes contables: Debe/Haber en Bs. -->
+            <xpath expr="//field[@name='line_ids']/list/field[@name='balance']" position="after">
+                <field name="l10n_ve_bs_currency_id" column_invisible="True"/>
+                <field name="l10n_ve_debit_bs" optional="show" sum="Total Debe Bs" readonly="1"
+                       column_invisible="not parent.l10n_ve_bs_currency_id or parent.l10n_ve_bs_currency_id == parent.company_currency_id"/>
+                <field name="l10n_ve_credit_bs" optional="show" sum="Total Haber Bs" readonly="1"
+                       column_invisible="not parent.l10n_ve_bs_currency_id or parent.l10n_ve_bs_currency_id == parent.company_currency_id"/>
+            </xpath>
+
+            <!-- Pestaña "Otra información" de facturas. -->
+            <xpath expr="//page[@id='other_tab']//group[@name='accounting_info_group']" position="inside">
+                <field name="l10n_ve_bs_rate" digits="[12,4]" readonly="1"
+                       invisible="not l10n_ve_bs_currency_id or l10n_ve_bs_currency_id == company_currency_id or not l10n_ve_bs_rate"/>
+                <field name="l10n_ve_bs_rate_date"
+                       invisible="not l10n_ve_bs_currency_id or l10n_ve_bs_currency_id == company_currency_id"/>
+                <field name="l10n_ve_bs_adjustment"
+                       invisible="not l10n_ve_bs_currency_id or l10n_ve_bs_currency_id == company_currency_id"/>
+                <field name="l10n_ve_bs_rate_override"
+                       readonly="state != 'draft'"
+                       invisible="not l10n_ve_bs_currency_id or l10n_ve_bs_currency_id == company_currency_id"/>
+            </xpath>
+
+            <!-- Pestaña "Otra información" de asientos varios. La línea de tasa
+                 de arriba vive en currency_div, que el core oculta para
+                 move_type == 'entry' (cierres POS, extractos, diferencias de
+                 cambio): aquí se muestra la tasa congelada de esos asientos. -->
+            <xpath expr="//page[@id='other_tab_entry']//group[@name='misc_group']" position="inside">
+                <field name="l10n_ve_bs_rate" digits="[12,4]" readonly="1"
+                       invisible="not l10n_ve_bs_currency_id or l10n_ve_bs_currency_id == company_currency_id or not l10n_ve_bs_rate"/>
+                <field name="l10n_ve_bs_rate_date"
+                       invisible="not l10n_ve_bs_currency_id or l10n_ve_bs_currency_id == company_currency_id"/>
+                <field name="l10n_ve_bs_adjustment"
+                       invisible="not l10n_ve_bs_currency_id or l10n_ve_bs_currency_id == company_currency_id"/>
+                <field name="l10n_ve_bs_rate_override"
+                       readonly="state != 'draft'"
+                       invisible="not l10n_ve_bs_currency_id or l10n_ve_bs_currency_id == company_currency_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!--
+        Listas de facturas. Se extiende la lista base: las listas de clientes,
+        proveedores, notas de crédito y reembolsos son vistas "primary" que la
+        heredan, y reciben las columnas sin repetir el parche en cada una.
+    -->
+    <record id="view_invoice_tree_dual_currency" model="ir.ui.view">
+        <field name="name">account.invoice.list.dual.currency</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_invoice_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='company_currency_id']" position="after">
+                <field name="l10n_ve_bs_currency_id" column_invisible="True"/>
+            </xpath>
+            <!-- Sin sum=: el "Total" del core es con signo (las notas de crédito y
+                 las facturas de proveedor salen negativas) y los montos Bs
+                 almacenados son siempre positivos. Sumarlos mezclaría facturas
+                 con notas de crédito como positivos y el pie Bs no cuadraría con
+                 el pie USD x tasa. -->
+            <xpath expr="//field[@name='amount_total_in_currency_signed']" position="after">
+                <field name="l10n_ve_amount_total_bs" string="Total Bs" optional="show"/>
+                <field name="l10n_ve_amount_residual_bs" string="Saldo Bs" optional="hide"/>
+                <field name="l10n_ve_bs_rate" string="Tasa Bs" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Búsqueda de asientos: auditoría de tasa faltante y de ajustes de redondeo. -->
+    <record id="view_account_move_filter_dual_currency" model="ir.ui.view">
+        <field name="name">account.move.select.dual.currency</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_account_move_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='misc_filter']" position="after">
+                <separator/>
+                <filter string="Sin tasa Bs" name="l10n_ve_bs_rate_missing"
+                        domain="[('l10n_ve_bs_rate_missing', '=', True)]"/>
+                <filter string="Ajuste Bs &gt; 1" name="l10n_ve_bs_adjustment_gt_1"
+                        domain="['|', ('l10n_ve_bs_adjustment', '&gt;', 1), ('l10n_ve_bs_adjustment', '&lt;', -1)]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Mismos filtros en la búsqueda de facturas (la heredan clientes y proveedores). -->
+    <record id="view_account_invoice_filter_dual_currency" model="ir.ui.view">
+        <field name="name">account.invoice.select.dual.currency</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_account_invoice_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='posted']" position="after">
+                <separator/>
+                <filter string="Sin tasa Bs" name="l10n_ve_bs_rate_missing"
+                        domain="[('l10n_ve_bs_rate_missing', '=', True)]"/>
+                <filter string="Ajuste Bs &gt; 1" name="l10n_ve_bs_adjustment_gt_1"
+                        domain="['|', ('l10n_ve_bs_adjustment', '&gt;', 1), ('l10n_ve_bs_adjustment', '&lt;', -1)]"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 BWEALTHICS LLC. Part of l10n_ve_bw_dual_currency. License LGPL-3. -->
+<templates xml:space="preserve">
+
+    <!-- Fila de grupo de impuesto: celda Bs a la derecha del monto en la moneda del documento. -->
+    <t t-name="l10n_ve_bw_dual_currency.TaxGroupComponent"
+       t-inherit="account.TaxGroupComponent" t-inherit-mode="extension">
+        <xpath expr="//td[hasclass('o_tax_group')]" position="after">
+            <td t-if="l10nVeBs" class="o_list_monetary text-muted ps-3">
+                <span class="o_l10n_ve_bs_tax_group" dir="ltr" style="white-space: nowrap;"
+                      t-out="bsTaxGroup()"/>
+            </td>
+        </xpath>
+    </t>
+
+    <!-- Subtotales y total: misma celda Bs. Las posiciones se anclan a los
+         nombres/atributos del core (name del subtotal y name="amount_total"). -->
+    <t t-name="l10n_ve_bw_dual_currency.TaxTotalsField"
+       t-inherit="account.TaxTotalsField" t-inherit-mode="extension">
+        <xpath expr="//span[@t-att-name='subtotal.name']/parent::td" position="after">
+            <td t-if="l10nVeBs" class="o_list_monetary text-muted ps-3">
+                <span class="o_l10n_ve_bs_subtotal" dir="ltr"
+                      style="white-space: nowrap; font-weight: bold;"
+                      t-out="bsSubtotal(subtotal)"/>
+            </td>
+        </xpath>
+        <!-- Fila "Rounding" (redondeo de efectivo): sin esta celda la fila quedaría
+             con una columna menos y los renglones Bs no sumarían el Total Bs. -->
+        <xpath expr="//span[@t-out='formatMonetary(totals.cash_rounding_base_amount_currency)']/parent::td" position="after">
+            <td t-if="l10nVeBs" class="o_list_monetary text-muted ps-3">
+                <span class="o_l10n_ve_bs_rounding" dir="ltr" style="white-space: nowrap;"
+                      t-out="bsRounding()"/>
+            </td>
+        </xpath>
+        <xpath expr="//span[@name='amount_total']/parent::td" position="after">
+            <td t-if="l10nVeBs" class="o_list_monetary text-muted ps-3">
+                <span name="amount_total_bs" dir="ltr"
+                      style="font-size: 1.3em; font-weight: bold; white-space: nowrap;"
+                      t-out="bsTotal()"/>
+            </td>
+        </xpath>
+    </t>
+</templates>

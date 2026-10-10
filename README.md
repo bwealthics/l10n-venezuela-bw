@@ -23,6 +23,8 @@ desarrollada y mantenida por [BWEALTHICS LLC](https://www.bwealthics.com).
 | `l10n_ve_bw_municipal` | Provisión mensual de patente de industria y comercio (alícuota, mínimo tributable en veces MMV) | Ordenanzas municipales · LOPPM | LGPL-3 |
 | `l10n_ve_bw_fiscal_books` | Libros de Compras y Ventas en XLSX, Nº de control, canal de emisión por diario, contingencia | Reglamento LIVA arts. 70–78 · PA 0071 | LGPL-3 |
 | `l10n_ve_bw_invoice_format` | Requisitos de forma del comprobante en el PDF (fecha/hora legal, marca «(E)», datos de imprenta), equivalente en Bs con nota de la tasa y desglose de impuesto por línea | PA 0071 · PA SNAT/2024/000102 · LIVA art. 25 | LGPL-3 |
+| `l10n_ve_bw_dual_currency` | Doble moneda USD/Bs: tasa BCV congelada por asiento (con hora de corte: antes de las 9:15 vale la del día anterior), Bs almacenados por apunte, factura en tres columnas, Libros IVA con Bs exactos y libros contables (Diario, Mayor, Balance de Comprobación) en USD y Bs | PA 0071 art. 13.14 · LIVA art. 25 · Ley BCV art. 128 | LGPL-3 |
+| `l10n_ve_bw_dual_currency_pos` | POS: pide la tasa BCV del día después de la hora de corte, guarda la tasa en la orden e imprime Total Bs y tasa en el recibo | PA 0071 art. 13.14 | LGPL-3 |
 | `l10n_ve_bw_einvoice` | Conector de imprenta digital autorizada (núcleo + proveedor simulado) | PA SNAT/2024/000102 · PA 000121 | LGPL-3 |
 | `l10n_ve_bw_fiscal_printer` | Máquina fiscal en el POS vía bridge local (protocolo HKA) | PA 0071 (reporte Z) | LGPL-3 |
 | `l10n_ve_bw_compliance` | Paraguas: instala la suite y deja el audit log **suscrito** | PA SNAT/2024/000102 art. 18.7 | **AGPL-3** |

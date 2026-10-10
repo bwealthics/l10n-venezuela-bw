@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 BWEALTHICS LLC
+     Part of l10n_ve_bw_dual_currency. License LGPL-3. -->
+<odoo>
+    <record id="view_legal_books_wizard_form" model="ir.ui.view">
+        <field name="name">l10n.ve.legal.books.wizard.form</field>
+        <field name="model">l10n.ve.legal.books.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Libros contables (Diario, Mayor, Balance)">
+                <div class="alert alert-info" role="alert">
+                    Genera un solo archivo XLSX con el Libro Diario, el Libro Mayor, el
+                    Balance de Comprobación y las Advertencias, en la moneda de la
+                    compañía y en Bs lado a lado. Solo incluye asientos publicados; los
+                    montos en Bs usan la tasa BCV congelada en cada asiento.
+                </div>
+                <group>
+                    <group>
+                        <field name="company_id"/>
+                        <field name="journal_ids" widget="many2many_tags"
+                               domain="[('company_id', '=', company_id)]"
+                               options="{'no_create': True}"/>
+                    </group>
+                    <group>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                    </group>
+                </group>
+                <group invisible="not file">
+                    <field name="filename" invisible="1"/>
+                    <field name="file" filename="filename" readonly="1"/>
+                </group>
+                <footer>
+                    <button name="action_generate" string="Generar" type="object"
+                            class="btn-primary" data-hotkey="q"/>
+                    <button string="Cerrar" class="btn-secondary" special="cancel"
+                            data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_legal_books_wizard" model="ir.actions.act_window">
+        <field name="name">Libros contables (Diario, Mayor, Balance)</field>
+        <field name="res_model">l10n.ve.legal.books.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Se cuelga de Reporting y no del menú Libros Fiscales (VE): ese padre
+         solo admite group_account_invoice y ocultaría este menú a los
+         auditores (group_account_readonly), que sí tienen ACL. Reporting ya
+         admite readonly e invoice. Sequence 91: justo debajo de Libros Fiscales (90). -->
+    <menuitem id="menu_l10n_ve_legal_books"
+              name="Libros contables (Diario, Mayor, Balance)"
+              parent="account.menu_finance_reports"
+              action="action_legal_books_wizard"
+              sequence="91"
+              groups="account.group_account_readonly,account.group_account_manager,account.group_account_invoice"/>
+</odoo>
