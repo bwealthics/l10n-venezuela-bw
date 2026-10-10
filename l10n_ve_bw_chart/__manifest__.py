@@ -2,7 +2,7 @@
 # Part of l10n_ve_bw. License LGPL-3.
 {
     "name": "Venezuela — Plan de Cuentas BWEALTHICS (6 dígitos)",
-    "version": "19.0.1.1.0",
+    "version": "19.0.1.2.0",
     "category": "Accounting/Localizations/Account Charts",
     "summary": "Plan de cuentas venezolano de 6 dígitos (VEN-NIF) con impuestos de IVA y base SPE",
     "description": """

@@ -87,6 +87,47 @@ class TestVeBwChartLoad(TransactionCase):
         self.assertEqual(len(unaffected), 1)
         self.assertEqual(unaffected.code, "330102")
 
+    def test_outstanding_accounts_come_from_the_chart(self):
+        """Las cuentas de tránsito son las del plan, no autocreadas en inglés.
+
+        Si la plantilla no declara estos dos xmlid,
+        ``_create_outstanding_accounts`` crea «Outstanding Receipts» y
+        «Outstanding Payments» bajo el prefijo de banco, en inglés y fuera de
+        la numeración prevista.
+        """
+        for xmlid, code in (
+            ("account_journal_payment_debit_account_id", "101202"),
+            ("account_journal_payment_credit_account_id", "101203"),
+        ):
+            account = self.env.ref(
+                "account.%s_%s" % (self.company.id, xmlid), raise_if_not_found=False,
+            )
+            self.assertTrue(account, "El xmlid %s no fue creado" % xmlid)
+            self.assertEqual(
+                account.code, code,
+                "%s apunta a %s en vez de a %s" % (xmlid, account.code, code),
+            )
+
+    def test_no_autocreated_english_accounts(self):
+        """Ninguna cuenta utilitaria se crea fuera del plan.
+
+        El loader autocrea en inglés toda cuenta utilitaria que la plantilla
+        deje sin definir, algunas con prefijo ``999`` fijo.
+        """
+        autocreated = self.company_accounts.filtered(
+            lambda a: a.name in (
+                "Bank Suspense Account", "Outstanding Receipts",
+                "Outstanding Payments", "Cash Discount Gain", "Cash Discount Loss",
+                "Cash Difference Gain", "Cash Difference Loss", "Liquidity Transfer",
+            ),
+        )
+        self.assertFalse(
+            autocreated,
+            "Cuentas autocreadas en inglés: %s" % autocreated.mapped(
+                lambda a: "%s %s" % (a.code, a.name),
+            ),
+        )
+
     def test_stock_valuation_account_links(self):
         # Los campos de stock existen solo con stock_account instalado; el
         # template los declara igual y el loader los tolera.

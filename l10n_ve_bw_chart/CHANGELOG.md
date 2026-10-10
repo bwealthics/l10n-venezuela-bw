@@ -4,6 +4,26 @@ Todas las modificaciones relevantes de este módulo. El formato sigue
 [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el versionado es
 el de Odoo: `19.0.MAJOR.MINOR.PATCH`, donde `19.0` es la serie de Odoo.
 
+## [19.0.1.2.0] - 2026-09-01
+
+### Corregido
+
+- Las cuentas `101202` «Cobros en Tránsito por Conciliar» y `101203` «Pagos en
+  Tránsito por Conciliar» pasan a declararse con los xmlid
+  `account_journal_payment_debit_account_id` y
+  `account_journal_payment_credit_account_id`, que es la convención que usa el
+  core en Odoo 19 (`l10n_vn`, `l10n_cn`, `l10n_ge`). Sin ellos
+  `_create_outstanding_accounts` creaba «Outstanding Receipts» y «Outstanding
+  Payments» **en inglés** bajo el prefijo de banco, y las líneas de método de
+  pago de los diarios bancarios apuntaban a esas cuentas en vez de a las del
+  plan. Se detectó al auditar una base en producción.
+
+### Migración
+
+- `migrations/19.0.1.2.0/post-migration.py` repunta el xmlid, mueve las líneas
+  de método de pago a la cuenta correcta y archiva la cuenta autocreada solo si
+  no tiene apuntes. Si los tiene, la deja activa y avisa en el log.
+
 ## [19.0.1.1.0] - 2026-07-31
 
 ### Añadido
