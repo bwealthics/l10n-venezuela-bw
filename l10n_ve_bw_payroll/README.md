@@ -26,8 +26,8 @@ venezolana completa sobre `hr_payroll_account`.
   recibo art. 106. Sin tasa cargada → `UserError`, nunca 1:1.
 - **Parámetros legales** = `hr.rule.parameter(.value)` versionados por fecha
   (Nómina > Configuración > Parámetros de reglas). Ninguna tasa vive en el
-  código. La actualización la avisa n8n por WhatsApp y la aplica un humano
-  (sin estado draft: se decidió que el scrape jamás escribe parámetros).
+  código. Los cambios normativos los aplica un humano: por diseño, ningún
+  proceso automático escribe parámetros legales.
 - **Cuentas**: mapeadas por código del chart `ve_bw` en el `post_init_hook`.
   Para una compañía VE creada después de instalar:
   `from odoo.addons.l10n_ve_bw_payroll.hooks import map_rule_accounts;
@@ -39,6 +39,10 @@ venezolana completa sobre `hr_payroll_account`.
   Odoo 19: los worked days reparten el wage íntegro en cada recibo y el costo
   anual usa 24 pagos semi-monthly). Empleado quincenal de $500/mes → cargar
   **wage = 250**. Los helpers mensualizan con `_ve_monthly_wage()`.
+- **Prorrateo por días calendario, nunca por horas** (19.0.4.1.0): ingreso o
+  egreso a mitad de período = días del contrato en el período / 15 (o / 30);
+  período completo = sueldo íntegro. Cesta y complemento siguen la misma
+  fracción; los worked days solo se usan para descontar ausencias sin goce.
 - Sueldo **solo en moneda de compañía (USD)** — el usuario eligió USD como
   moneda de cuenta; agregar `wage_mode` VES cuando exista un contrato pactado
   en Bs.
@@ -163,20 +167,14 @@ cosa juzgada.
   las compañías con chart ≠ `ve_bw` ya mapeadas a mano (SITELCA/generic_coa,
   señal: regla básica con cuenta de débito) y crea 110202 si falta.
 
-## Automatización de tasas (n8n/WAHA)
+## Automatización de la carga de tasas
 
-- **Tasa BCV diaria**: workflows "MISOYMASA Tasa BCV" y "SITELCA Tasa BCV"
-  ya activos en el n8n de BWEALTHICS (cron diario en hora de Caracas; MISOYMASA a las 9:15, tras la publicación del BCV a las 9:00; ve.dolarapi.com,
-  guardas anti-salto >15%, error → WhatsApp). Es la tasa que congela cada
-  recibo.
-- **"VE Parametros Legales"** (wflow id `yWI1DCQ8L7XjIpXb`): cron diario
-  7:15 AM Caracas — detector de señales por Google News RSS (salario
-  mínimo / cestaticket / UT / IMI, dedupe por link) + recordatorio mensual
-  (día 3) de la tasa de prestaciones BCV. Avisa por WhatsApp al grupo
-  BWEALTHICS INTERNO; **NUNCA escribe parámetros en Odoo** (humano en el
-  loop). Script fuente: `Odoo/Localización VE/scripts/n8n_ve_params_workflow.py`
-  (re-ejecutar para actualizar; `--activate` para activarlo). Webhook:
-  `set_keys` / `dry_run` / `monthly_test`.
+Las tasas y topes legales se cargan como `hr.rule.parameter.value` versionados
+por fecha. La automatización de su carga (scraping del BCV, alertas de cambio
+normativo) queda **fuera del alcance de este módulo**: se resuelve con la
+herramienta de orquestación que cada implantación prefiera. El criterio de
+diseño es que ningún proceso automático escriba parámetros legales — siempre
+hay un humano en el loop.
 
 ## Tests
 

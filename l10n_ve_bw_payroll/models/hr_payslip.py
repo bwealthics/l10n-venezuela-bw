@@ -168,13 +168,39 @@ class HrPayslip(models.Model):
         self.ensure_one()
         return (self._ve_version().wage or 0.0) / self._ve_period_ratio()
 
+    def _ve_period_days(self):
+        """Días base del período (LOTTT: mes de 30 días, quincena de 15)."""
+        self.ensure_one()
+        return {1.0: 30, 0.5: 15}.get(self._ve_period_ratio(), 7)
+
+    def _ve_day_ratio(self):
+        """Fracción del período devengada, por DÍAS CALENDARIO: en Venezuela
+        el salario se causa por día (diario = mensual / 30), no por horas del
+        calendario de trabajo. Contrato que cubre el período = 1 (aunque la
+        quincena tenga 16 o 13 días); ingreso o egreso a mitad de período =
+        días del contrato en el período / días base. Las ausencias no
+        remuneradas (worked days sin pago) descuentan días."""
+        self.ensure_one()
+        version = self._ve_version()
+        base = self._ve_period_days()
+        start = max(self.date_from, version.contract_date_start or self.date_from)
+        end = min(self.date_to, version.contract_date_end or self.date_to)
+        if end < start:
+            return 0.0
+        if start == self.date_from and end == self.date_to:
+            days = base
+        else:
+            days = min((end - start).days + 1, base)
+        unpaid = sum(wd.number_of_days for wd in self.worked_days_line_ids
+                     if not wd.is_paid and wd.code != "OUT")
+        return max(days - unpaid, 0.0) / base
+
     def _ve_basic_wage(self):
         self.ensure_one()
-        # Con worked days delega en el motor (prorratea ausencias); sin worked
-        # days (cálculo manual, tests) paga el wage del período completo.
-        if self.worked_days_line_ids:
-            return self._get_paid_amount()
-        return self._ve_version().wage or 0.0
+        # No delega en el motor de worked days: Odoo prorratea por horas del
+        # calendario (sueldo × horas / horas del período), que en ingresos a
+        # mitad de quincena o jornadas rotativas no da el salario por días.
+        return (self._ve_version().wage or 0.0) * self._ve_day_ratio()
 
     def _ve_daily_wage(self):
         """Salario diario LOTTT: sueldo MENSUAL / 30 (base de HE y feriados),
@@ -343,7 +369,10 @@ class HrPayslip(models.Model):
         if not self._ve_version().l10n_ve_cesta_ticket:
             return 0.0
         self._ve_require_usd()
-        return self._ve_param("l10n_ve_cesta_ticket_usd") * self._ve_period_ratio()
+        # Se causa por día como el salario: ingreso a mitad de período o días
+        # sin goce reducen la cesta en la misma proporción.
+        return (self._ve_param("l10n_ve_cesta_ticket_usd") * self._ve_period_ratio()
+                * self._ve_day_ratio())
 
     def _ve_cesta_complement(self):
         """Complemento mensual del beneficio de alimentación pactado en el
@@ -354,7 +383,7 @@ class HrPayslip(models.Model):
         if not amount:
             return 0.0
         self._ve_require_usd()
-        return amount * self._ve_period_ratio()
+        return amount * self._ve_period_ratio() * self._ve_day_ratio()
 
     # --- CEPP (Ley de Protección de las Pensiones 2024, 9% con piso IMI) ---
 

@@ -192,6 +192,26 @@ class TestPayslipVe(PayslipVeCommon):
         total_faov = self._line(q1, "VE_FAOV_EMP") + self._line(q2, "VE_FAOV_EMP")
         self.assertAlmostEqual(total_faov, -5.625, delta=0.02)
 
+    def test_ingreso_a_mitad_de_quincena_prorratea_por_dias(self):
+        # LOTTT: salario diario = mensual / 30; NO por horas del calendario.
+        # Ingreso el 20/07 → 16-31 jul devenga 12 días de 15 (incluye el 31).
+        self.version.write({"schedule_pay": "semi-monthly", "wage": 150.0,
+                            "contract_date_start": "2026-07-20"})
+        q2 = self._make_payslip(date_from="2026-07-16", date_to="2026-07-31")
+        self.assertAlmostEqual(self._line(q2, "BASIC"), 120.0, places=2)
+        self.assertAlmostEqual(self._line(q2, "VE_CESTA"), 16.0, places=2)
+        # Quincena completa de 16 días: sueldo íntegro, no 16/15
+        full = self._make_payslip(date_from="2026-08-16", date_to="2026-08-31")
+        self.assertAlmostEqual(self._line(full, "BASIC"), 150.0, places=2)
+        self.assertAlmostEqual(self._line(full, "VE_CESTA"), 20.0, places=2)
+
+    def test_egreso_a_mitad_de_quincena(self):
+        # Egreso el 13/08 con 420/mes (210 por quincena): 13 días × 14 = 182
+        self.version.write({"schedule_pay": "semi-monthly", "wage": 210.0,
+                            "contract_date_end": "2026-08-13"})
+        q1 = self._make_payslip(date_from="2026-08-01", date_to="2026-08-15")
+        self.assertAlmostEqual(self._line(q1, "BASIC"), 182.0, places=2)
+
     def test_utilidades_structure(self):
         slip = self._make_payslip(struct=self.struct_util,
                                   date_from="2026-12-01", date_to="2026-12-15")

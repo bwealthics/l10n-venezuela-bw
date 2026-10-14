@@ -4,6 +4,22 @@ Todas las modificaciones relevantes de este módulo. El formato sigue
 [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el versionado es
 el de Odoo: `19.0.MAJOR.MINOR.PATCH`, donde `19.0` es la serie de Odoo.
 
+## [19.0.4.1.0] - 2026-10-13
+
+### Cambiado
+
+- **Sueldo y cesta se prorratean por días calendario, no por horas.** En
+  Venezuela el salario se causa por día (diario = mensual / 30): un ingreso o
+  egreso a mitad de período devenga días del contrato en el período / 15
+  (quincena) o / 30 (mes), y la quincena completa paga el sueldo íntegro
+  aunque tenga 16 o 13 días. Antes el BASIC tomaba el monto del motor de
+  worked days (sueldo × horas trabajadas / horas del período según el
+  calendario), que en jornadas rotativas y en ingresos a mitad de quincena no
+  da el salario por días (MISOYMASA: ingreso el 25/08 pagado 7/15 del sueldo;
+  Odoo calculaba 6,8/15). La cesta ticket y su complemento, que no se
+  prorrateaban, siguen la misma fracción. Las ausencias sin goce (worked days
+  no pagados) descuentan días.
+
 ## [19.0.4.0.1] - 2026-10-10
 
 ### Seguridad
