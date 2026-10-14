@@ -26,7 +26,7 @@ Localización de Nómina de Venezuela
 
 Fuente normativa: Odoo/Localización VE/Nomina-VE-Requerimientos-2026.md (bóveda).
 """,
-    "version": "19.0.4.1.0",
+    "version": "19.0.4.1.1",
     "license": "LGPL-3",
     "author": "BWEALTHICS LLC",
     "website": "https://www.bwealthics.com",

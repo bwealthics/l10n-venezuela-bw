@@ -200,6 +200,10 @@ class HrPayslip(models.Model):
         # No delega en el motor de worked days: Odoo prorratea por horas del
         # calendario (sueldo × horas / horas del período), que en ingresos a
         # mitad de quincena o jornadas rotativas no da el salario por días.
+        # Contrato por hora: no hay sueldo fijo que prorratear (wage = 0), el
+        # devengo son las horas trabajadas → se mantiene el motor.
+        if self.wage_type == "hourly":
+            return self._get_paid_amount()
         return (self._ve_version().wage or 0.0) * self._ve_day_ratio()
 
     def _ve_daily_wage(self):

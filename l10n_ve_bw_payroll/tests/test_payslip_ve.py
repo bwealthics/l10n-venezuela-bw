@@ -212,6 +212,15 @@ class TestPayslipVe(PayslipVeCommon):
         q1 = self._make_payslip(date_from="2026-08-01", date_to="2026-08-15")
         self.assertAlmostEqual(self._line(q1, "BASIC"), 182.0, places=2)
 
+    def test_contrato_por_hora_usa_horas_trabajadas(self):
+        # Sin sueldo fijo el prorrateo por días daría 0: el BASIC sigue al
+        # motor de worked days (tarifa × horas).
+        self.version.write({"wage_type": "hourly", "hourly_wage": 5.0, "wage": 0.0})
+        slip = self._make_payslip()
+        paid = sum(slip.worked_days_line_ids.mapped("amount"))
+        self.assertGreater(paid, 0.0)
+        self.assertAlmostEqual(self._line(slip, "BASIC"), paid, places=2)
+
     def test_utilidades_structure(self):
         slip = self._make_payslip(struct=self.struct_util,
                                   date_from="2026-12-01", date_to="2026-12-15")

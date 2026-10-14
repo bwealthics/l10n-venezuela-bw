@@ -4,6 +4,16 @@ Todas las modificaciones relevantes de este módulo. El formato sigue
 [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el versionado es
 el de Odoo: `19.0.MAJOR.MINOR.PATCH`, donde `19.0` es la serie de Odoo.
 
+## [19.0.4.1.1] - 2026-10-13
+
+### Corregido
+
+- **Contratos por hora**: el prorrateo por días de 19.0.4.1.0 multiplicaba el
+  sueldo fijo del contrato, que en un contrato por hora es 0, y dejaba el
+  BASIC en 0. Ahora el contrato por hora sigue al motor de worked days
+  (tarifa × horas trabajadas), como antes. Ninguna base en producción tenía
+  contratos por hora.
+
 ## [19.0.4.1.0] - 2026-10-13
 
 ### Cambiado
