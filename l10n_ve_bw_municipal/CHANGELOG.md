@@ -4,6 +4,15 @@ Todas las modificaciones relevantes de este módulo. El formato sigue
 [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el versionado es
 el de Odoo: `19.0.MAJOR.MINOR.PATCH`, donde `19.0` es la serie de Odoo.
 
+## [19.0.1.1.1] - 2026-10-17
+
+### Corregido
+
+- El menú del asistente no se veía en bases con Enterprise (`accountant`):
+  colgaba solo de `account.menu_finance`, que no es la app que se abre. Nueva
+  entrada en **Accounting > Accounting** (`account.menu_finance_entries`); la
+  original se mantiene para bases sin `accountant`.
+
 ## [19.0.1.1.0] - 2026-07-31
 
 Primera versión publicada en el repositorio. Módulo LGPL-3, dependiente de

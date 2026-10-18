@@ -47,6 +47,39 @@ class ResCompany(models.Model):
              "(mínimo legal 30, máximo 120 — art. 131-132 LOTTT). Alimenta la "
              "alícuota del salario integral (FAOV, prestaciones).")
 
+    l10n_ve_benefits_base = fields.Selection(
+        [("wage", "Sueldo del contrato"),
+         ("minimum_wage", "Sueldo base en Bs (salario mínimo)")],
+        string="Base de prestaciones y liquidación", default="wage",
+        required=True,
+        help="Salario sobre el que se calculan las prestaciones sociales, "
+             "vacaciones, bono vacacional y utilidades (provisiones y "
+             "finiquito). «Sueldo base en Bs» usa el salario mínimo vigente "
+             "(parámetro de nómina) a la tasa BCV de la fecha: aplica cuando "
+             "el salario pactado es el sueldo base y los pagos en divisas son "
+             "bonos no salariales (SCS/TSJ N° 523 del 13-11-2025). Es una "
+             "decisión legal de la empresa: confírmela con su asesor.")
+    l10n_ve_cesta_in_net = fields.Boolean(
+        string="Cesta ticket pagada con el sueldo",
+        help="Marcar si la cesta ticket se transfiere junto con el sueldo. El "
+             "Neto a Pagar del recibo incluye la cesta (lo que se transfiere) "
+             "y su pasivo va a Sueldos por Pagar (210501) en vez de Cesta "
+             "Ticket por Pagar (210502). La cesta sigue fuera del salario "
+             "bruto: no es salario (art. 105 LOTTT, Ley del Cestaticket).")
+
+    def write(self, vals):
+        res = super().write(vals)
+        if "l10n_ve_cesta_in_net" in vals:
+            # El pasivo de la cesta cambia de cuenta: re-mapear las reglas.
+            from ..hooks import map_rule_accounts
+            basic = self.env.ref("l10n_ve_bw_payroll.rule_ve_reg_basic",
+                                 raise_if_not_found=False)
+            for company in self:
+                if company.chart_template == "ve_bw" or (
+                        basic and basic.with_company(company).account_debit):
+                    map_rule_accounts(self.env, company)
+        return res
+
     @api.constrains("l10n_ve_utilidades_days")
     def _check_l10n_ve_utilidades_days(self):
         for company in self:

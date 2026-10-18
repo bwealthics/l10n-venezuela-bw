@@ -203,3 +203,44 @@ class TestLiquidacionVe(PayslipVeCommon):
         self._wizard().action_create_payslip()
         with self.assertRaises(UserError):
             self._wizard().action_create_payslip()
+
+    def test_base_salario_minimo_bs(self):
+        # Sueldo base Bs 130 a 100 Bs/USD = 1,30 USD/mes → normal diario
+        # 0,043333; integral = normal × (1 + 30/360 + 15/360) = 0,04875.
+        self.company.l10n_ve_benefits_base = "minimum_wage"
+        wiz = self._wizard()
+        self.assertAlmostEqual(wiz.prest_trim, 15 * 0.04875, delta=0.005)
+        self.assertAlmostEqual(wiz.retroactivo, 30 * 0.04875, delta=0.005)
+        # 15 d/año × 8/12 × 0,043333 = 0,4333
+        self.assertAlmostEqual(wiz.vac_frac, 0.4333, delta=0.005)
+        self.assertAlmostEqual(wiz.util_frac, 30 * 8 / 12 * 1.30 / 30, delta=0.005)
+
+
+
+    def test_dias_y_cesta_pendientes(self):
+        # 25 días de sueldo base Bs 130 (100 Bs/USD) y 25 de cesta (40/30)
+        self.company.l10n_ve_benefits_base = "minimum_wage"
+        slip = self._make_payslip(
+            struct=self.struct_liq, date_from="2026-10-01",
+            date_to="2026-10-22",
+            inputs={"liq_dias_d": 25, "liq_cesta_d": 25})
+        dias = self._line(slip, "VE_LIQ_DIAS")
+        cesta = self._line(slip, "VE_LIQ_CESTA")
+        self.assertAlmostEqual(dias, 25 * 1.30 / 30, delta=0.01)
+        self.assertAlmostEqual(cesta, 25 * 40 / 30, delta=0.01)
+        # Los días pendientes son salario: pagan ISLR (AR-I 10 % del empleado
+        # de prueba); la cesta no.
+        ded = sum(slip.line_ids.filtered(
+            lambda l: l.category_id.code == "DED").mapped("total"))
+        self.assertAlmostEqual(ded, -dias * 0.10, delta=0.01)
+        self.assertAlmostEqual(
+            self._line(slip, "NET"), dias + cesta + ded, delta=0.02)
+        slip.action_payslip_done()
+        move = slip.move_id
+        side = lambda code, f: sum(move.line_ids.filtered(
+            lambda l: l.account_id.code == code).mapped(f))
+        self.assertAlmostEqual(side("610201", "debit"), cesta, delta=0.01)
+        self.assertAlmostEqual(
+            side("210508", "credit"), self._line(slip, "NET"), delta=0.02)
+        adjust = move.line_ids.filtered(lambda l: l.name == "Adjustment Entry")
+        self.assertTrue(all(abs(l.balance) <= 0.05 for l in adjust))

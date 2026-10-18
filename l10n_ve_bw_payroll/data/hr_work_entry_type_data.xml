@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 BWEALTHICS LLC
+     Part of l10n_ve_bw_payroll. License LGPL-3. -->
+<odoo>
+    <!-- Art. 173 LOTTT: dos días de descanso semanal remunerados. No genera
+         hr.work.entry: solo la usa la línea de días trabajados del recibo
+         (hr_payslip._ve_rest_day_line) para completar los días del período. -->
+    <record id="work_entry_type_ve_descanso" model="hr.work.entry.type">
+        <field name="name">Descanso semanal remunerado</field>
+        <field name="code">VEDESC</field>
+        <field name="display_code">DES</field>
+        <field name="sequence">26</field>
+        <field name="color">10</field>
+        <field name="country_id" ref="base.ve"/>
+        <field name="is_leave" eval="False"/>
+    </record>
+</odoo>

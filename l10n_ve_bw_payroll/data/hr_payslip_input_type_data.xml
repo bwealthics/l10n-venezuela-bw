@@ -118,6 +118,18 @@
         <field name="country_id" ref="base.ve"/>
         <field name="struct_ids" eval="[(4, ref('structure_ve_liquidacion'))]"/>
     </record>
+    <record id="input_type_liq_dias_d" model="hr.payslip.input.type">
+        <field name="name">Liquidación: Días de Trabajo Pendientes (días)</field>
+        <field name="code">LIQ_DIAS_D</field>
+        <field name="country_id" ref="base.ve"/>
+        <field name="struct_ids" eval="[(4, ref('structure_ve_liquidacion'))]"/>
+    </record>
+    <record id="input_type_liq_cesta_d" model="hr.payslip.input.type">
+        <field name="name">Liquidación: Cesta Ticket Pendiente (días)</field>
+        <field name="code">LIQ_CESTA_D</field>
+        <field name="country_id" ref="base.ve"/>
+        <field name="struct_ids" eval="[(4, ref('structure_ve_liquidacion'))]"/>
+    </record>
     <record id="input_type_liq_comp" model="hr.payslip.input.type">
         <field name="name">Liquidación: Compensación de Pagos Recibidos</field>
         <field name="code">LIQ_COMP</field>

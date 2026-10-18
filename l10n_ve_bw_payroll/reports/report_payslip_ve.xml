@@ -48,12 +48,41 @@
                                     <th class="text-end">Bs</th>
                                 </tr>
                             </thead>
+                            <!-- La cesta ticket no es salario (categoría CESTA): queda
+                                 fuera del bruto y del neto, que solo suman conceptos
+                                 salariales y deducciones. Se muestra después del neto
+                                 y el total a recibir es neto + cesta; impresa entre el
+                                 sueldo y el bruto la suma no cuadraba a la vista. -->
+                            <t t-set="rate" t-value="o.l10n_ve_bcv_rate or 0"/>
+                            <t t-set="cesta_lines" t-value="o.line_ids.filtered(lambda l: l.appears_on_payslip and l.total and l.category_id.code == 'CESTA')"/>
+                            <t t-set="net" t-value="sum(o.line_ids.filtered(lambda l: l.code == 'NET').mapped('total'))"/>
+                            <t t-set="cesta_in_net" t-value="o.company_id.l10n_ve_cesta_in_net"/>
+                            <t t-set="to_receive" t-value="net if cesta_in_net else net + sum(cesta_lines.mapped('total'))"/>
+                            <!-- Cesta dentro del neto: el NET va al final, después de la cesta. -->
                             <tbody>
-                                <t t-foreach="o.line_ids.filtered(lambda l: l.appears_on_payslip and l.total)" t-as="line">
+                                <t t-foreach="o.line_ids.filtered(lambda l: l.appears_on_payslip and l.total and l.category_id.code != 'CESTA' and not (cesta_in_net and l.code == 'NET'))" t-as="line">
                                     <tr t-att-class="'fw-bold' if line.code in ('GROSS', 'NET') else ''">
                                         <td><span t-field="line.name"/></td>
                                         <td class="text-end"><t t-esc="'{:,.2f}'.format(line.total)"/></td>
-                                        <td class="text-end"><t t-esc="'{:,.2f}'.format(line.total * (o.l10n_ve_bcv_rate or 0))"/></td>
+                                        <td class="text-end"><t t-esc="'{:,.2f}'.format(line.total * rate)"/></td>
+                                    </tr>
+                                </t>
+                                <t t-if="cesta_lines">
+                                    <tr>
+                                        <td colspan="3" class="pt-3"><em>Beneficio de alimentación (no salarial)</em></td>
+                                    </tr>
+                                    <t t-foreach="cesta_lines" t-as="line">
+                                        <tr>
+                                            <td><span t-field="line.name"/></td>
+                                            <td class="text-end"><t t-esc="'{:,.2f}'.format(line.total)"/></td>
+                                            <td class="text-end"><t t-esc="'{:,.2f}'.format(line.total * rate)"/></td>
+                                        </tr>
+                                    </t>
+                                    <tr class="fw-bold border-top border-dark">
+                                        <td t-if="cesta_in_net">Neto a Pagar (incluye beneficio de alimentación)</td>
+                                        <td t-else="">Total a recibir (neto + beneficio de alimentación)</td>
+                                        <td class="text-end"><t t-esc="'{:,.2f}'.format(to_receive)"/></td>
+                                        <td class="text-end"><t t-esc="'{:,.2f}'.format(to_receive * rate)"/></td>
                                     </tr>
                                 </t>
                             </tbody>

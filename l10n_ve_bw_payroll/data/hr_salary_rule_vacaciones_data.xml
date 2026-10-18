@@ -36,6 +36,7 @@
     </record>
 
     <record id="rule_ve_vac_gross" model="hr.salary.rule">
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
         <field name="struct_id" ref="structure_ve_vacaciones"/>
         <field name="category_id" ref="hr_payroll.GROSS"/>
         <field name="name">Total Vacaciones</field>
@@ -105,6 +106,7 @@
     </record>
 
     <record id="rule_ve_vac_ivss_pat" model="hr.salary.rule">
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
         <field name="struct_id" ref="structure_ve_vacaciones"/>
         <field name="category_id" ref="hr_payroll.COMP"/>
         <field name="name">Aporte Patronal IVSS</field>
@@ -118,6 +120,7 @@
     </record>
 
     <record id="rule_ve_vac_rpe_pat" model="hr.salary.rule">
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
         <field name="struct_id" ref="structure_ve_vacaciones"/>
         <field name="category_id" ref="hr_payroll.COMP"/>
         <field name="name">Aporte Patronal RPE (2%)</field>
@@ -131,6 +134,7 @@
     </record>
 
     <record id="rule_ve_vac_faov_pat" model="hr.salary.rule">
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
         <field name="struct_id" ref="structure_ve_vacaciones"/>
         <field name="category_id" ref="hr_payroll.COMP"/>
         <field name="name">Aporte Patronal FAOV (2%)</field>
@@ -144,6 +148,7 @@
 
     <!-- El pago de vacaciones es salario normal: devenga INCES 2% patronal -->
     <record id="rule_ve_vac_inces_pat" model="hr.salary.rule">
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
         <field name="struct_id" ref="structure_ve_vacaciones"/>
         <field name="category_id" ref="hr_payroll.COMP"/>
         <field name="name">Aporte Patronal INCES (2%)</field>
@@ -157,6 +162,7 @@
     </record>
 
     <record id="rule_ve_vac_cepp_pat" model="hr.salary.rule">
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
         <field name="struct_id" ref="structure_ve_vacaciones"/>
         <field name="category_id" ref="hr_payroll.COMP"/>
         <field name="name">Contribución Especial de Pensiones (9%)</field>

@@ -21,6 +21,7 @@ result = payslip._ve_util_average_daily() * days</field>
     </record>
 
     <record id="rule_ve_util_gross" model="hr.salary.rule">
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
         <field name="struct_id" ref="structure_ve_utilidades"/>
         <field name="category_id" ref="hr_payroll.GROSS"/>
         <field name="name">Total Utilidades</field>
@@ -71,6 +72,7 @@ result = payslip._ve_util_average_daily() * days</field>
 
     <!-- Las utilidades integran la base CEPP del mes en que se pagan. -->
     <record id="rule_ve_util_cepp_pat" model="hr.salary.rule">
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
         <field name="struct_id" ref="structure_ve_utilidades"/>
         <field name="category_id" ref="hr_payroll.COMP"/>
         <field name="name">Contribución Especial de Pensiones (9%)</field>

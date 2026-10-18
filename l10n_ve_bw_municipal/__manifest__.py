@@ -17,7 +17,7 @@ Impuesto municipal (patente de industria y comercio) para Venezuela:
   genera el asiento borrador Dr Gasto / Cr Impuesto Municipal por Pagar.
   Un mes sin ventas provisiona el mínimo.
 """,
-    "version": "19.0.1.1.0",
+    "version": "19.0.1.1.1",
     "license": "LGPL-3",
     "author": "BWEALTHICS LLC",
     "website": "https://www.bwealthics.com",

@@ -66,4 +66,15 @@
               action="action_l10n_ve_municipal_tax_wizard"
               groups="account.group_account_invoice"
               sequence="15"/>
+
+    <!-- Con Enterprise (accountant) la app que se abre es accountant.menu_accounting,
+         no account.menu_finance: el menú de arriba queda invisible. accountant
+         re-cuelga account.menu_finance_entries de su raíz, así que esta entrada
+         aparece en Accounting > Accounting (requiere group_account_readonly). -->
+    <menuitem id="menu_l10n_ve_municipal_tax_wizard_entries"
+              name="Impuesto Municipal (VE)"
+              parent="account.menu_finance_entries"
+              action="action_l10n_ve_municipal_tax_wizard"
+              groups="account.group_account_invoice"
+              sequence="90"/>
 </odoo>

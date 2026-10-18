@@ -212,6 +212,37 @@ class TestPayslipVe(PayslipVeCommon):
         q1 = self._make_payslip(date_from="2026-08-01", date_to="2026-08-15")
         self.assertAlmostEqual(self._line(q1, "BASIC"), 182.0, places=2)
 
+    def _rest(self, slip):
+        return slip.worked_days_line_ids.filtered(lambda l: l.code == "VEDESC")
+
+    def _days_paid(self, slip):
+        return sum(slip.worked_days_line_ids.filtered(
+            lambda l: l.code != "OUT").mapped("number_of_days"))
+
+    def test_descanso_semanal_completa_la_quincena(self):
+        # Art. 173 LOTTT: 1-15 jul 2026 tiene 11 días hábiles (L-V) y 4 de
+        # descanso; el recibo muestra 15 días y el sueldo no cambia.
+        self.version.write({"schedule_pay": "semi-monthly", "wage": 250.0})
+        slip = self._make_payslip(date_from="2026-07-01", date_to="2026-07-15")
+        self.assertAlmostEqual(self._rest(slip).number_of_days, 4.0, places=4)
+        self.assertTrue(self._rest(slip).is_paid)
+        self.assertAlmostEqual(self._days_paid(slip), 15.0, places=4)
+        self.assertAlmostEqual(self._line(slip, "BASIC"), 250.0, places=2)
+        self.assertAlmostEqual(
+            sum(slip.worked_days_line_ids.mapped("amount")), 250.0, places=2)
+
+    def test_descanso_con_egreso_a_mitad_de_quincena(self):
+        # Egreso el 13/08: 9 hábiles + 4 descanso = 13 días cubiertos.
+        self.version.write({"schedule_pay": "semi-monthly", "wage": 210.0,
+                            "contract_date_end": "2026-08-13"})
+        slip = self._make_payslip(date_from="2026-08-01", date_to="2026-08-15")
+        self.assertAlmostEqual(self._days_paid(slip), 13.0, places=4)
+        self.assertAlmostEqual(self._line(slip, "BASIC"), 182.0, places=2)
+
+    def test_descanso_no_aplica_a_contrato_por_hora(self):
+        self.version.write({"wage_type": "hourly", "hourly_wage": 5.0, "wage": 0.0})
+        self.assertFalse(self._rest(self._make_payslip()))
+
     def test_contrato_por_hora_usa_horas_trabajadas(self):
         # Sin sueldo fijo el prorrateo por días daría 0: el BASIC sigue al
         # motor de worked days (tarifa × horas).
@@ -286,3 +317,32 @@ class TestPayslipVe(PayslipVeCommon):
         self.assertAlmostEqual(
             sum(move.line_ids.mapped("debit")),
             sum(move.line_ids.mapped("credit")), places=2)
+
+    def test_cesta_pagada_con_el_sueldo(self):
+        # Opción de compañía: el neto es lo transferido (incluye la cesta)
+        # y el pasivo completo va a 210501; 210502 no se toca.
+        self.company.l10n_ve_cesta_in_net = True
+        slip = self._make_payslip()
+        net = self._line(slip, "NET")
+        gross = self._line(slip, "GROSS")
+        ded = sum(slip.line_ids.filtered(
+            lambda l: l.category_id.code == "DED").mapped("total"))
+        self.assertAlmostEqual(gross, 500.0, places=2)
+        # Cada línea se redondea por separado; el NET suma categorías sin redondear.
+        self.assertAlmostEqual(net, gross + 40.0 + ded, delta=0.02)
+        slip.action_payslip_done()
+        move = slip.move_id
+        credit = lambda code: sum(move.line_ids.filtered(
+            lambda l: l.account_id.code == code).mapped("credit"))
+        self.assertAlmostEqual(credit("210501"), net, delta=0.02)
+        self.assertEqual(credit("210502"), 0.0)
+        adjust = move.line_ids.filtered(lambda l: l.name == "Adjustment Entry")
+        self.assertTrue(all(abs(l.balance) <= 0.05 for l in adjust))
+
+    def test_costo_empleador(self):
+        # Bruto + cesta + aportes patronales (dashboard y lote de nómina)
+        slip = self._make_payslip()
+        comp = sum(slip.line_ids.filtered(
+            lambda l: l.category_id.code == "COMP").mapped("total"))
+        self.assertAlmostEqual(
+            slip.employer_cost, 500.0 + 40.0 + comp, places=2)

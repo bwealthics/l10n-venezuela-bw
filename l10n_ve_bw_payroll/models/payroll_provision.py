@@ -102,7 +102,12 @@ class L10nVePayrollProvision(models.Model):
     def _employee_monthly_base(self, employee, date_to, flag):
         """Base MENSUAL del último recibo regular validado, sumando las
         líneas cuyas reglas tienen `flag` (incluye variables como
-        comisiones); sin historial, el wage mensualizado (puro normal)."""
+        comisiones); sin historial, el wage mensualizado (puro normal).
+        Con la compañía en base «salario mínimo» la base es el sueldo base
+        legal en Bs (parámetro de salario mínimo) convertido a la tasa BCV
+        de la fecha: los pagos en divisas son bonos no salariales."""
+        if employee.company_id.l10n_ve_benefits_base == "minimum_wage":
+            return self._ve_minimum_wage_monthly(employee.company_id, date_to)
         slip = self.env["hr.payslip"].search([
             ("employee_id", "=", employee.id),
             ("state", "in", ("validated", "paid")),
@@ -120,6 +125,25 @@ class L10nVePayrollProvision(models.Model):
                 "Frecuencia de pago '%s' no soportada por la nómina VE "
                 "(empleado %s).", sched, employee.name))
         return (version.wage or 0.0) / PERIOD_RATIOS[sched]
+
+    @api.model
+    def _ve_minimum_wage_monthly(self, company, date):
+        """Salario mínimo mensual (Bs) en la moneda de la compañía a la tasa
+        BCV de `date`. Sin tasa cargada falla: _convert caería en silencio
+        a 1:1 y liquidaría 130 USD en vez de 130 Bs."""
+        ves = self.env.ref("base.VES")
+        sm_ves = self.env["hr.rule.parameter"]._get_parameter_from_code(
+            "l10n_ve_minimum_wage_ves", date)
+        if not self.env["res.currency.rate"].sudo().search_count([
+                ("currency_id", "=", ves.id),
+                ("company_id", "in", [company.id, False]),
+                ("name", "<=", date)], limit=1):
+            raise UserError(_(
+                "No hay tasa BCV (Bs) cargada al %s para convertir el sueldo "
+                "base de la liquidación.", date))
+        rate = self.env["res.currency"]._get_conversion_rate(
+            ves, company.currency_id, company, date)
+        return sm_ves * rate
 
     @api.model
     def _employee_monthly_normal(self, employee, date_to):

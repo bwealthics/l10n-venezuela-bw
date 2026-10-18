@@ -125,6 +125,7 @@
     <!-- Cesta ticket: categoría propia, fuera del GROSS y del NET, con
          contabilidad independiente (610201 / 210502). Base CEPP. -->
     <record id="rule_ve_reg_cesta" model="hr.salary.rule">
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
         <field name="struct_id" ref="structure_ve_regular"/>
         <field name="category_id" ref="salary_rule_category_cesta"/>
         <field name="name">Cesta Ticket (Beneficio de Alimentación)</field>
@@ -144,6 +145,7 @@
          el contrato (l10n_ve_cesta_complement_usd, prorrateado por período)
          y/o puntual por input CESTA_COMP. -->
     <record id="rule_ve_reg_cesta_comp" model="hr.salary.rule">
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
         <field name="struct_id" ref="structure_ve_regular"/>
         <field name="category_id" ref="salary_rule_category_cesta"/>
         <field name="name">Complemento de Cestaticket (art. 105.2 LOTTT)</field>
@@ -157,6 +159,7 @@
     </record>
 
     <record id="rule_ve_reg_gross" model="hr.salary.rule">
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
         <field name="struct_id" ref="structure_ve_regular"/>
         <field name="category_id" ref="hr_payroll.GROSS"/>
         <field name="name">Salario Bruto</field>
@@ -235,11 +238,14 @@
         <field name="sequence">200</field>
         <field name="condition_select">none</field>
         <field name="amount_select">code</field>
-        <field name="amount_python_compute">result = categories['BASIC'] + categories['ALW'] + categories['DED']</field>
+        <!-- Con la cesta pagada con el sueldo (opción de compañía) el neto es
+             lo transferido: incluye la cesta, que sigue fuera del GROSS. -->
+        <field name="amount_python_compute">result = categories['BASIC'] + categories['ALW'] + categories['DED'] + (categories['CESTA'] if payslip.company_id.l10n_ve_cesta_in_net else 0.0)</field>
     </record>
 
     <!-- ============== Aportes patronales (no afectan el neto) ============== -->
     <record id="rule_ve_reg_ivss_pat" model="hr.salary.rule">
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
         <field name="struct_id" ref="structure_ve_regular"/>
         <field name="category_id" ref="hr_payroll.COMP"/>
         <field name="name">Aporte Patronal IVSS</field>
@@ -253,6 +259,7 @@
     </record>
 
     <record id="rule_ve_reg_rpe_pat" model="hr.salary.rule">
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
         <field name="struct_id" ref="structure_ve_regular"/>
         <field name="category_id" ref="hr_payroll.COMP"/>
         <field name="name">Aporte Patronal RPE (2%)</field>
@@ -266,6 +273,7 @@
     </record>
 
     <record id="rule_ve_reg_faov_pat" model="hr.salary.rule">
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
         <field name="struct_id" ref="structure_ve_regular"/>
         <field name="category_id" ref="hr_payroll.COMP"/>
         <field name="name">Aporte Patronal FAOV (2%)</field>
@@ -279,6 +287,7 @@
 
     <!-- Devengo mensual del 2% INCES (el pago es trimestral en SIGAT). -->
     <record id="rule_ve_reg_inces_pat" model="hr.salary.rule">
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
         <field name="struct_id" ref="structure_ve_regular"/>
         <field name="category_id" ref="hr_payroll.COMP"/>
         <field name="name">Aporte Patronal INCES (2%)</field>
@@ -292,6 +301,7 @@
     </record>
 
     <record id="rule_ve_reg_cepp_pat" model="hr.salary.rule">
+        <field name="appears_on_employee_cost_dashboard" eval="True"/>
         <field name="struct_id" ref="structure_ve_regular"/>
         <field name="category_id" ref="hr_payroll.COMP"/>
         <field name="name">Contribución Especial de Pensiones (9%)</field>

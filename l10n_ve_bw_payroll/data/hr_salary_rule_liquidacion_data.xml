@@ -56,6 +56,40 @@
         <field name="amount_python_compute">result = inputs['LIQ_INT'].amount</field>
     </record>
 
+    <!-- Días de salario y de cesta pendientes al egreso (p. ej. hasta la
+         culminación del contrato), cargados en DÍAS por el usuario. El
+         salario diario sigue la base de prestaciones de la compañía (sueldo
+         del contrato o sueldo base en Bs); la cesta, el parámetro legal en
+         USD / 30. La cesta entra al neto del finiquito (se paga junta). -->
+    <record id="rule_ve_liq_dias" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_liquidacion"/>
+        <field name="category_id" ref="hr_payroll.ALW"/>
+        <field name="name">Días de Trabajo Pendientes</field>
+        <field name="code">VE_LIQ_DIAS</field>
+        <field name="sequence">5</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'LIQ_DIAS_D' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs['LIQ_DIAS_D'].amount * payslip._ve_liq_daily_salary()</field>
+        <field name="l10n_ve_salarial" eval="True"/>
+        <field name="l10n_ve_in_salario_normal" eval="True"/>
+        <field name="l10n_ve_in_islr_base" eval="True"/>
+        <field name="l10n_ve_in_pension_base" eval="True"/>
+    </record>
+
+    <record id="rule_ve_liq_cesta" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_liquidacion"/>
+        <field name="category_id" ref="salary_rule_category_cesta"/>
+        <field name="name">Cesta Ticket Pendiente (Beneficio de Alimentación)</field>
+        <field name="code">VE_LIQ_CESTA</field>
+        <field name="sequence">6</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'LIQ_CESTA_D' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs['LIQ_CESTA_D'].amount * payslip._ve_cesta_daily()</field>
+        <field name="l10n_ve_in_pension_base" eval="True"/>
+    </record>
+
     <record id="rule_ve_liq_vac" model="hr.salary.rule">
         <field name="struct_id" ref="structure_ve_liquidacion"/>
         <field name="category_id" ref="hr_payroll.ALW"/>
@@ -151,7 +185,7 @@
         <field name="sequence">200</field>
         <field name="condition_select">none</field>
         <field name="amount_select">code</field>
-        <field name="amount_python_compute">result = categories['BASIC'] + categories['ALW'] + categories['DED']</field>
+        <field name="amount_python_compute">result = categories['BASIC'] + categories['ALW'] + categories['DED'] + categories['CESTA']</field>
     </record>
 
     <!-- Las fracciones (vac/bono/utilidades) integran la base CEPP del mes;

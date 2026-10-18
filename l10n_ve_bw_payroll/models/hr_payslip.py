@@ -173,6 +173,21 @@ class HrPayslip(models.Model):
         self.ensure_one()
         return {1.0: 30, 0.5: 15}.get(self._ve_period_ratio(), 7)
 
+    def _ve_covered_days(self):
+        """Días base del período cubiertos por el contrato, sin descontar
+        ausencias: la quincena completa vale 15 aunque tenga 13 o 16 días;
+        ingreso o egreso a mitad de período = días del contrato en él."""
+        self.ensure_one()
+        version = self._ve_version()
+        base = self._ve_period_days()
+        start = max(self.date_from, version.contract_date_start or self.date_from)
+        end = min(self.date_to, version.contract_date_end or self.date_to)
+        if end < start:
+            return 0
+        if start == self.date_from and end == self.date_to:
+            return base
+        return min((end - start).days + 1, base)
+
     def _ve_day_ratio(self):
         """Fracción del período devengada, por DÍAS CALENDARIO: en Venezuela
         el salario se causa por día (diario = mensual / 30), no por horas del
@@ -181,19 +196,70 @@ class HrPayslip(models.Model):
         días del contrato en el período / días base. Las ausencias no
         remuneradas (worked days sin pago) descuentan días."""
         self.ensure_one()
-        version = self._ve_version()
-        base = self._ve_period_days()
-        start = max(self.date_from, version.contract_date_start or self.date_from)
-        end = min(self.date_to, version.contract_date_end or self.date_to)
-        if end < start:
-            return 0.0
-        if start == self.date_from and end == self.date_to:
-            days = base
-        else:
-            days = min((end - start).days + 1, base)
         unpaid = sum(wd.number_of_days for wd in self.worked_days_line_ids
                      if not wd.is_paid and wd.code != "OUT")
-        return max(days - unpaid, 0.0) / base
+        return max(self._ve_covered_days() - unpaid, 0.0) / self._ve_period_days()
+
+    def _ve_liq_daily_salary(self):
+        """Salario diario de los días pendientes del finiquito: misma base
+        que las prestaciones (res.company.l10n_ve_benefits_base)."""
+        self.ensure_one()
+        if self.company_id.l10n_ve_benefits_base == "minimum_wage":
+            return (self._ve_param("l10n_ve_minimum_wage_ves")
+                    / self._ve_rate() / 30.0)
+        return self._ve_daily_wage()
+
+    def _ve_cesta_daily(self):
+        self.ensure_one()
+        self._ve_require_usd()
+        return self._ve_param("l10n_ve_cesta_ticket_usd") / 30.0
+
+    # --- Descanso semanal remunerado (art. 173 LOTTT) ---
+
+    def _get_worked_day_lines(self, domain=None, check_out_of_version=True):
+        res = super()._get_worked_day_lines(
+            domain=domain, check_out_of_version=check_out_of_version)
+        if check_out_of_version:
+            rest = self._ve_rest_day_line(res)
+            if rest:
+                res.append(rest)
+        return res
+
+    def _ve_rest_day_line(self, lines):
+        """Los días de descanso semanal son remunerados (art. 173 LOTTT) y el
+        sueldo mensual ya los incluye: la quincena paga 15 días. Las entradas
+        de trabajo solo traen los días laborados, así que el recibo mostraba
+        11-13 días aunque el BASIC pagara los 15. Esta línea completa los días
+        cubiertos por el contrato; no cambia el monto (el BASIC se calcula
+        por días en _ve_basic_wage, y el core reparte el sueldo entre las
+        líneas pagadas). Contrato por hora: no aplica, ahí el descanso se
+        paga aparte por semana cumplida y el complemento sobrepagaría."""
+        self.ensure_one()
+        if (self.struct_id.code != "VEREG" or self.wage_type == "hourly"
+                or self.company_id.country_id.code != "VE"):
+            return None
+        rest_type = self.env.ref(
+            "l10n_ve_bw_payroll.work_entry_type_ve_descanso",
+            raise_if_not_found=False)
+        if not rest_type:
+            return None
+        out_type = self.env.ref(
+            "hr_work_entry.hr_work_entry_type_out_of_contract",
+            raise_if_not_found=False)
+        counted = sum(line["number_of_days"] for line in lines
+                      if not out_type or line["work_entry_type_id"] != out_type.id)
+        days = round(self._ve_covered_days() - counted, 5)
+        # ponytail: si se laboró más que lo cubierto (trabajo en día de
+        # descanso, art. 120) no hay complemento; el recargo del 50 % y el
+        # descanso compensatorio van por input, no se infieren aquí.
+        if days <= 0:
+            return None
+        return {
+            "sequence": rest_type.sequence,
+            "work_entry_type_id": rest_type.id,
+            "number_of_days": days,
+            "number_of_hours": days * (self._get_worked_day_lines_hours_per_day() or 8.0),
+        }
 
     def _ve_basic_wage(self):
         self.ensure_one()

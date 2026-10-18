@@ -26,7 +26,7 @@ Localización de Nómina de Venezuela
 
 Fuente normativa: Odoo/Localización VE/Nomina-VE-Requerimientos-2026.md (bóveda).
 """,
-    "version": "19.0.4.1.1",
+    "version": "19.0.4.5.0",
     "license": "LGPL-3",
     "author": "BWEALTHICS LLC",
     "website": "https://www.bwealthics.com",
@@ -43,6 +43,7 @@ Fuente normativa: Odoo/Localización VE/Nomina-VE-Requerimientos-2026.md (bóved
         "data/hr_payroll_structure_type_data.xml",
         "data/hr_payroll_structure_data.xml",
         "data/hr_payslip_input_type_data.xml",
+        "data/hr_work_entry_type_data.xml",
         "data/hr_rule_parameter_data.xml",
         "data/hr_salary_rule_regular_data.xml",
         "data/hr_salary_rule_utilidades_data.xml",

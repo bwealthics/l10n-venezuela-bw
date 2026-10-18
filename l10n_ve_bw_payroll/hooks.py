@@ -67,6 +67,10 @@ RULE_ACCOUNTS = {
     "rule_ve_liq_prest_extra": ("610401", None),
     "rule_ve_liq_prest_trim": ("610401", None),
     "rule_ve_liq_int": ("220102", None),
+    # Días y cesta pendientes al egreso: gasto directo; el neto (210508) ya
+    # los incluye.
+    "rule_ve_liq_dias": ("610101", None),
+    "rule_ve_liq_cesta": ("610201", None),
     "rule_ve_liq_vac": ("210602", None),
     "rule_ve_liq_bvac": ("210603", None),
     "rule_ve_liq_util": ("210601", None),
@@ -78,6 +82,8 @@ RULE_ACCOUNTS = {
     "rule_ve_liq_cepp_pat": ("610305", "210510"),
     "rule_ve_liq_net": (None, "210508"),
 }
+
+CESTA_RULES = ("rule_ve_reg_cesta", "rule_ve_reg_cesta_comp")
 
 # Cuentas que el chart puede no tener aún en compañías con ve_bw instalado
 # antes del bump 19.0.1.1.0 (el template no re-carga en upgrade).
@@ -116,6 +122,10 @@ def map_rule_accounts(env, company):
         return account
 
     for xmlid, (debit, credit) in RULE_ACCOUNTS.items():
+        # Cesta pagada con el sueldo: el NET ya la incluye y la acredita en
+        # 210501; acreditarla también en 210502 la duplicaría.
+        if xmlid in CESTA_RULES and company.l10n_ve_cesta_in_net:
+            credit = None
         rule = env.ref("l10n_ve_bw_payroll.%s" % xmlid, raise_if_not_found=False)
         if not rule:
             continue

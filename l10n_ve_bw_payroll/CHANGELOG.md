@@ -4,6 +4,69 @@ Todas las modificaciones relevantes de este módulo. El formato sigue
 [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el versionado es
 el de Odoo: `19.0.MAJOR.MINOR.PATCH`, donde `19.0` es la serie de Odoo.
 
+## [19.0.4.5.0] - 2026-10-16
+
+### Añadido
+
+- **Días de trabajo y cesta pendientes en el finiquito**: inputs
+  `LIQ_DIAS_D` y `LIQ_CESTA_D` (en días) en la estructura Liquidación. Los
+  días se pagan al salario diario de la base de prestaciones de la compañía
+  (sueldo del contrato o sueldo base en Bs) y la cesta al parámetro legal /
+  30. Ambos entran al neto del finiquito (210508), con gasto en 610101 y
+  610201.
+
+## [19.0.4.4.0] - 2026-10-16
+
+### Añadido
+
+- **Base de prestaciones y liquidación** (`l10n_ve_benefits_base`, Ajustes >
+  Nómina Venezuela). «Sueldo base en Bs (salario mínimo)» calcula las
+  prestaciones, vacaciones, bono vacacional y utilidades (provisiones y
+  finiquito) sobre el salario mínimo vigente en Bs a la tasa BCV de la
+  fecha, en vez del sueldo del contrato en USD. Para empresas cuyo salario
+  pactado es el sueldo base y pagan el resto como bonos no salariales. Por
+  defecto sigue el sueldo del contrato.
+
+## [19.0.4.3.0] - 2026-10-15
+
+### Añadido
+
+- **Opción «Cesta ticket pagada con el sueldo»** (Ajustes > Localización
+  Venezuela > Nómina, `l10n_ve_cesta_in_net`, apagada por defecto). Cuando la
+  cesta se transfiere junto con el sueldo, el Neto a Pagar del recibo, del
+  lote y del dashboard incluye la cesta (lo transferido) y su pasivo va a
+  210501 en vez de 210502. Reemplaza el ajuste manual por quincena que
+  movía la cesta de 210502 a 210501. La cesta sigue fuera del salario bruto.
+
+### Corregido
+
+- **Costo del empleador en 0** en el lote y el dashboard: ninguna regla
+  estaba marcada como «Contributes to Employer Cost». Ahora suman el bruto,
+  la cesta y los aportes patronales (Regular, Vacaciones y Utilidades).
+
+## [19.0.4.2.1] - 2026-10-15
+
+### Corregido
+
+- **Recibo PDF: la cesta ticket descuadraba la suma a la vista.** Se imprimía
+  entre el sueldo y el salario bruto, pero no integra el bruto ni el neto (no
+  es salario), así que «sueldo + cesta − FAOV» no daba el neto. Ahora va en un
+  bloque «Beneficio de alimentación (no salarial)» después del neto, con una
+  línea «Total a recibir» = neto + cesta, que es lo que se transfiere. El
+  cálculo y la contabilidad no cambian.
+
+## [19.0.4.2.0] - 2026-10-15
+
+### Añadido
+
+- **Descanso semanal remunerado en los días del recibo** (art. 173 LOTTT). Las
+  entradas de trabajo solo traen los días laborados, así que la quincena
+  mostraba 11-13 días trabajados aunque el BASIC ya pagara los 15. Nueva línea
+  de días `VEDESC` «Descanso semanal remunerado» que completa los días
+  cubiertos por el contrato (15 en la quincena completa, menos en ingresos o
+  egresos a mitad de período). Solo estructura Regular y sueldo fijo; no
+  cambia montos. El contrato por hora no la lleva.
+
 ## [19.0.4.1.1] - 2026-10-13
 
 ### Corregido
