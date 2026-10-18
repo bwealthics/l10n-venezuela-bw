@@ -88,7 +88,7 @@ el de Odoo: `19.0.MAJOR.MINOR.PATCH`, donde `19.0` es la serie de Odoo.
   aunque tenga 16 o 13 días. Antes el BASIC tomaba el monto del motor de
   worked days (sueldo × horas trabajadas / horas del período según el
   calendario), que en jornadas rotativas y en ingresos a mitad de quincena no
-  da el salario por días (MISOYMASA: ingreso el 25/08 pagado 7/15 del sueldo;
+  da el salario por días (caso real: ingreso el 25/08 pagado 7/15 del sueldo;
   Odoo calculaba 6,8/15). La cesta ticket y su complemento, que no se
   prorrateaban, siguen la misma fracción. Las ausencias sin goce (worked days
   no pagados) descuentan días.
@@ -138,7 +138,7 @@ frente al salario básico; y los pagos extraordinarios al cese son
   entradas nuevas de `RULE_ACCOUNTS` (`rule_ve_reg_cesta_comp`,
   `rule_ve_liq_comp`). `post_init_hook` cubre desde esta versión también las
   compañías VE con chart distinto de `ve_bw` ya mapeadas a mano
-  (SITELCA/generic_coa — señal: la regla básica con cuenta de débito
+  (p. ej. generic_coa — señal: la regla básica con cuenta de débito
   asignada): sin esto, cada upgrade dejaba las reglas nuevas sin cuentas en
   esas bases y las líneas se omitían o caían al Adjustment Entry en
   silencio.
@@ -169,8 +169,8 @@ frente al salario básico; y los pagos extraordinarios al cese son
 
 ## [19.0.3.2.0] - 2026-08-23
 
-Frecuencia semanal y base del CEPP configurable, ambas pedidas por SITELCA
-(obra TK-02) al preparar su primer cierre en Odoo.
+Frecuencia semanal y base del CEPP configurable, ambas pedidas por una
+empresa de construcción al preparar su primer cierre en Odoo.
 
 ### Añadido
 

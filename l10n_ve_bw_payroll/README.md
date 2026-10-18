@@ -164,7 +164,7 @@ cosa juzgada.
   columna de diferencia ordenaba un top-up contradictorio.
 - ⚙️ Upgrade → `migrations/19.0.4.0.0/post-migration.py` re-mapea cuentas
   (nuevas entradas en RULE_ACCOUNTS). `post_init_hook` ahora cubre también
-  las compañías con chart ≠ `ve_bw` ya mapeadas a mano (SITELCA/generic_coa,
+  las compañías con chart ≠ `ve_bw` ya mapeadas a mano (p. ej. generic_coa,
   señal: regla básica con cuenta de débito) y crea 110202 si falta.
 
 ## Automatización de la carga de tasas

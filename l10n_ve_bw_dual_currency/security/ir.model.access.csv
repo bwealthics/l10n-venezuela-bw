@@ -1,4 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_l10n_ve_legal_books_wizard_readonly,l10n.ve.legal.books.wizard readonly,model_l10n_ve_legal_books_wizard,account.group_account_readonly,1,1,1,1
-access_l10n_ve_legal_books_wizard_manager,l10n.ve.legal.books.wizard manager,model_l10n_ve_legal_books_wizard,account.group_account_manager,1,1,1,1
-access_l10n_ve_legal_books_wizard_invoice,l10n.ve.legal.books.wizard invoice,model_l10n_ve_legal_books_wizard,account.group_account_invoice,1,1,1,1

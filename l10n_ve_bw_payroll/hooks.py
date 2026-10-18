@@ -146,8 +146,8 @@ def map_rule_accounts(env, company):
 
 def post_init_hook(env):
     companies = env["res.company"].search([("chart_template", "=", "ve_bw")])
-    # Compañías VE que operan el módulo sobre OTRO chart (p. ej. SITELCA en
-    # generic_coa, cuentas VE creadas a mano): la señal de que
+    # Compañías VE que operan el módulo sobre OTRO chart (p. ej. una base
+    # con generic_coa y cuentas VE creadas a mano): la señal de que
     # map_rule_accounts ya corrió allí es la regla básica con cuenta de
     # débito mapeada. Sin este barrido, cada upgrade dejaría las reglas
     # NUEVAS sin cuentas en esas bases — línea omitida del asiento o
