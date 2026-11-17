@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 BWEALTHICS LLC -->
+<odoo>
+    <record id="view_pos_pos_form_paper" model="ir.ui.view">
+        <field name="name">pos.order.form.l10n.ve.pos.paper</field>
+        <field name="model">pos.order</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Papelería fiscal (talonario / forma libre)"
+                       name="l10n_ve_contingency"
+                       invisible="not l10n_ve_contingency_control">
+                    <field name="l10n_ve_contingency_invoice_number"/>
+                    <field name="l10n_ve_contingency_control"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

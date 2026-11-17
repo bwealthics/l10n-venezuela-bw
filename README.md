@@ -25,6 +25,8 @@ desarrollada y mantenida por [BWEALTHICS LLC](https://www.bwealthics.com).
 | `l10n_ve_bw_invoice_format` | Requisitos de forma del comprobante en el PDF (fecha/hora legal, marca «(E)», datos de imprenta), equivalente en Bs con nota de la tasa y desglose de impuesto por línea | PA 0071 · PA SNAT/2024/000102 · LIVA art. 25 | LGPL-3 |
 | `l10n_ve_bw_einvoice` | Conector de imprenta digital autorizada (núcleo + proveedor simulado) | PA SNAT/2024/000102 · PA 000121 | LGPL-3 |
 | `l10n_ve_bw_fiscal_printer` | Máquina fiscal en el POS vía bridge local (protocolo HKA) | PA 0071 (reporte Z) | LGPL-3 |
+| `l10n_ve_bw_pos_paper` | Facturación del POS sobre papelería de imprenta autorizada (talonario o formas libres) y modo contingencia por sesión | PA 0071 | LGPL-3 |
+| `l10n_ve_bw_pos_bs` | Cobros POS en bolívares (pago móvil, punto de venta): Bs exactos + referencia en caja y cobro del cierre denominado en VES para conciliar 1:1 contra el banco | LIVA art. 25 | LGPL-3 |
 | `l10n_ve_bw_compliance` | Paraguas: instala la suite y deja el audit log **suscrito** | PA SNAT/2024/000102 art. 18.7 | **AGPL-3** |
 | `l10n_ve_bw_payroll` | Nómina VE: IVSS, RPE, FAOV, INCES, ISLR (AR-I), CEPP, cesta ticket, recibo bimonetario | LOTTT · leyes de seguridad social | LGPL-3 |
 

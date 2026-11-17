@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 BWEALTHICS LLC -->
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.l10n.ve.pos.paper</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="l10n_ve_bw_fiscal_books.res_config_settings_view_form_l10n_ve"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='l10n_ve_bw_fiscal_books']" position="inside">
+                <setting string="Facturación en papel (talonario / formas libres)"
+                         help="Caja sin máquina fiscal: el POS captura los números de la papelería de imprenta autorizada y genera la factura solo. Con máquina fiscal configurada este modo se ignora.">
+                    <div class="row">
+                        <label for="pos_l10n_ve_paper_mode" class="col-lg-4"/>
+                        <field name="pos_l10n_ve_paper_mode"/>
+                    </div>
+                    <div class="row">
+                        <label for="pos_l10n_ve_paper_batch_id" class="col-lg-4"/>
+                        <field name="pos_l10n_ve_paper_batch_id"/>
+                    </div>
+                    <div class="row" invisible="pos_l10n_ve_paper_mode != 'contingencia'">
+                        <label for="pos_l10n_ve_contingency_journal_id" class="col-lg-4"/>
+                        <field name="pos_l10n_ve_contingency_journal_id"/>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

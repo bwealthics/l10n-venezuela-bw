@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 BWEALTHICS LLC -->
+<odoo>
+    <!-- payment_ref_no ya existe en el form core (invisible cuando está
+         vacío): aquí solo se agregan los campos Bs, con el mismo patrón
+         de visibilidad condicional del core. -->
+    <record id="view_pos_payment_form_bs" model="ir.ui.view">
+        <field name="name">pos.payment.form.l10n.ve.bs</field>
+        <field name="model">pos.payment</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_payment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='amount']" position="after">
+                <field name="l10n_ve_amount_bs" invisible="not l10n_ve_amount_bs"/>
+                <field name="l10n_ve_rate" invisible="not l10n_ve_amount_bs"/>
+                <field name="l10n_ve_payer_phone" invisible="not l10n_ve_payer_phone"/>
+                <field name="l10n_ve_payer_bank" invisible="not l10n_ve_payer_bank"/>
+                <field name="l10n_ve_dest_bank" invisible="not l10n_ve_dest_bank"/>
+                <field name="l10n_ve_split_ap_id" invisible="not l10n_ve_split_ap_id"/>
+                <field name="l10n_ve_bdv_state" invisible="not l10n_ve_bdv_state or l10n_ve_bdv_state == 'pendiente'" decoration-success="l10n_ve_bdv_state == 'verificado'" decoration-danger="l10n_ve_bdv_state == 'rechazado'" decoration-warning="l10n_ve_bdv_state == 'no_verificable'" decoration-info="l10n_ve_bdv_state == 'otro_banco'"/>
+                <field name="l10n_ve_bdv_note" invisible="not l10n_ve_bdv_note"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_pos_payment_tree_bs" model="ir.ui.view">
+        <field name="name">pos.payment.tree.l10n.ve.bs</field>
+        <field name="model">pos.payment</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_payment_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='amount']" position="after">
+                <field name="l10n_ve_amount_bs" optional="show"/>
+                <field name="payment_ref_no" optional="show"/>
+                <field name="l10n_ve_bdv_state" optional="hide" decoration-success="l10n_ve_bdv_state == 'verificado'" decoration-danger="l10n_ve_bdv_state == 'rechazado'" decoration-warning="l10n_ve_bdv_state == 'no_verificable'"/>
+                <field name="l10n_ve_payer_phone" optional="hide"/>
+                <field name="l10n_ve_payer_bank" optional="hide"/>
+                <field name="l10n_ve_dest_bank" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_pos_payment_search_bs" model="ir.ui.view">
+        <field name="name">pos.payment.search.l10n.ve.bs</field>
+        <field name="model">pos.payment</field>
+        <field name="inherit_id" ref="point_of_sale.view_pos_payment_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="payment_ref_no"/>
+                <field name="l10n_ve_bdv_state"/>
+            </xpath>
+            <xpath expr="//search" position="inside">
+                <filter string="Rechazados por BDV" name="bdv_rechazados"
+                        domain="[('l10n_ve_bdv_state', '=', 'rechazado')]"/>
+                <filter string="Pendientes de verificar" name="bdv_pendientes"
+                        domain="[('l10n_ve_bdv_state', '=', 'pendiente')]"/>
+                <filter string="Verificados por BDV" name="bdv_verificados"
+                        domain="[('l10n_ve_bdv_state', '=', 'verificado')]"/>
+                <filter string="Cobrados en otro banco" name="bdv_otro_banco"
+                        domain="[('l10n_ve_bdv_state', '=', 'otro_banco')]"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

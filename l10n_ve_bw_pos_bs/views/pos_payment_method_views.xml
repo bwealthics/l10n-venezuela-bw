@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 BWEALTHICS LLC -->
+<odoo>
+    <record id="pos_payment_method_view_form_bs" model="ir.ui.view">
+        <field name="name">pos.payment.method.form.l10n.ve.bs</field>
+        <field name="model">pos.payment.method</field>
+        <field name="inherit_id" ref="point_of_sale.pos_payment_method_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='journal_id']" position="after">
+                <field name="l10n_ve_bs_tender"/>
+                <field name="l10n_ve_bs_require_ref" invisible="not l10n_ve_bs_tender"/>
+                <field name="l10n_ve_bs_payer_data" invisible="not l10n_ve_bs_tender"/>
+                <field name="l10n_ve_bs_dest_banks" invisible="not l10n_ve_bs_payer_data" placeholder="0172,0102"/>
+                <field name="l10n_ve_split_partner_id" invisible="not split_transactions"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2026 BWEALTHICS LLC -->
+<templates id="template" xml:space="preserve">
+
+    <t t-name="l10n_ve_bw_pos_paper.ControlButtons"
+       t-inherit="point_of_sale.ControlButtons" t-inherit-mode="extension">
+        <xpath expr="//t[@t-if='props.showRemainingButtons']/div/button[hasclass('o_pricelist_button')]"
+               position="before">
+            <!-- El rótulo rojo permanente ES el control anti-abuso: mientras
+                 el modo esté activo se ve toda la jornada. -->
+            <button t-if="l10nVeShowContingency()"
+                    t-att-class="pos.session.l10n_ve_contingency_start ? 'btn btn-danger' : buttonClass"
+                    t-on-click="() => this.clickContingencia()">
+                <i class="fa fa-exclamation-triangle me-1"/>
+                <t t-if="pos.session.l10n_ve_contingency_start">CONTINGENCIA ACTIVA</t>
+                <t t-else="">Contingencia</t>
+            </button>
+        </xpath>
+    </t>
+
+</templates>
