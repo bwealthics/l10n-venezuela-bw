@@ -78,6 +78,22 @@ class TestPayslipVe(PayslipVeCommon):
         self.assertAlmostEqual(self._line(slip, "VE_COMIS"), 100.0, places=2)
         self.assertAlmostEqual(self._line(slip, "VE_EMBARGO"), -25.0, places=2)
 
+    def test_anticipo_descuenta_neto_y_acredita_210501(self):
+        base = self._make_payslip()
+        slip = self._make_payslip(inputs={"anticipo": 55})
+        self.assertAlmostEqual(self._line(slip, "VE_ANTICIPO"), -55.0, places=2)
+        self.assertAlmostEqual(
+            self._line(slip, "NET"), self._line(base, "NET") - 55.0, places=2)
+        # No es salario: no toca el bruto ni las cotizaciones
+        self.assertAlmostEqual(
+            self._line(slip, "GROSS"), self._line(base, "GROSS"), places=2)
+        self.assertAlmostEqual(
+            self._line(slip, "VE_FAOV_EMP"), self._line(base, "VE_FAOV_EMP"), places=2)
+        rule = self.env.ref("l10n_ve_bw_payroll.rule_ve_reg_anticipo").with_company(
+            self.company)
+        self.assertEqual(rule.account_debit.code, "210501")
+        self.assertFalse(rule.account_credit)
+
     def test_bono_no_salarial(self):
         # No cotiza (FAOV intacto) pero SÍ grava ISLR y CEPP
         slip = self._make_payslip(inputs={"bono_ns": 100})

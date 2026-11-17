@@ -230,6 +230,21 @@
         <field name="amount_python_compute">result = -inputs['EMBARGO'].amount</field>
     </record>
 
+    <!-- Monto negativo con 210501 en el slot de débito (hooks.py): el asiento
+         del recibo ACREDITA 210501 y cancela el débito del anticipo. -->
+    <record id="rule_ve_reg_anticipo" model="hr.salary.rule">
+        <field name="struct_id" ref="structure_ve_regular"/>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="name">Anticipo de Sueldo</field>
+        <field name="code">VE_ANTICIPO</field>
+        <field name="sequence">115</field>
+        <field name="condition_select">python</field>
+        <field name="condition_python">result = 'ANTICIPO' in inputs</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = -inputs['ANTICIPO'].amount
+result_name = inputs['ANTICIPO'].name</field>
+    </record>
+
     <record id="rule_ve_reg_net" model="hr.salary.rule">
         <field name="struct_id" ref="structure_ve_regular"/>
         <field name="category_id" ref="hr_payroll.NET"/>

@@ -153,13 +153,7 @@ class L10nVeFiscalBookWizard(models.TransientModel):
             return "02", move.debit_origin_id.name or ""
         return "01", ""
 
-    def _get_sale_moves(self):
-        # Las facturas emitidas desde el POS a contribuyentes se listan POR
-        # DOCUMENTO en el bloque del art. 76 (con su Nº de factura y Nº de
-        # control), igual que el resto de facturas de cliente. Solo las
-        # órdenes POS NO facturadas van al resumen diario del art. 77; los
-        # asientos de cierre de sesión (move_type 'entry') quedan fuera por
-        # el filtro de tipo de documento.
+    def _get_all_sale_moves(self):
         return self.env["account.move"].search([
             ("company_id", "=", self.company_id.id),
             ("move_type", "in", ("out_invoice", "out_refund")),
@@ -167,6 +161,58 @@ class L10nVeFiscalBookWizard(models.TransientModel):
             ("date", ">=", self.date_from),
             ("date", "<=", self.date_to),
         ], order="date, name")
+
+    @staticmethod
+    def _is_daily_summary_move(move):
+        """Factura de máquina fiscal a un NO contribuyente (sin RIF/cédula):
+        va al resumen diario del art. 77, no por documento. Desde
+        l10n_ve_bw_fiscal_serial_pos 19.0.1.4.0 todo ticket de máquina se
+        factura (consumidor final incluido), así que sin esto el bloque del
+        art. 77 quedaría vacío y el art. 76 lleno de ventas sin RIF. Las NC
+        siguen por documento (la NC de máquina exige RIF/cédula)."""
+        return (move.move_type == "out_invoice"
+                and move.journal_id.l10n_ve_emission_channel == "mf"
+                and not move.commercial_partner_id.vat)
+
+    def _get_sale_moves(self):
+        # Las facturas a contribuyentes (con RIF) se listan POR DOCUMENTO en
+        # el bloque del art. 76 (con su Nº de factura y Nº de control). Las
+        # órdenes POS NO facturadas y las facturas de máquina fiscal sin RIF
+        # van al resumen diario del art. 77; los asientos de cierre de sesión
+        # (move_type 'entry') quedan fuera por el filtro de tipo de documento.
+        return self._get_all_sale_moves().filtered(
+            lambda m: not self._is_daily_summary_move(m))
+
+    def _get_mf_day_rows(self, ves):
+        """Resumen diario (art. 77) de las facturas de máquina fiscal a no
+        contribuyentes: una fila por día y máquina, con el rango de Nº de
+        control (Nº del ticket). Los montos salen de las mismas filas por
+        documento (_prepare_move_row), así cuadran con el Diario."""
+        groups = {}
+        for move in self._get_all_sale_moves().filtered(
+                self._is_daily_summary_move):
+            serial = (move.l10n_ve_fiscal_machine_serial
+                      if "l10n_ve_fiscal_machine_serial" in move._fields
+                      else False) or move.journal_id.name or ""
+            day = move.invoice_date or move.date
+            groups.setdefault((day, serial), []).append(move)
+        rows = []
+        for (day, serial), moves in sorted(groups.items()):
+            vals = dict.fromkeys(AMOUNT_KEYS, 0.0)
+            for move in moves:
+                move_vals = self._prepare_move_row(move, ves)
+                for key in AMOUNT_KEYS:
+                    vals[key] += move_vals[key]
+            numbers = sorted(m.l10n_ve_control_number or m.name for m in moves)
+            vals.update({
+                "date": day,
+                "machine": serial,
+                "session": _("%s facturas de máquina fiscal", len(moves)),
+                "first_order": numbers[0],
+                "last_order": numbers[-1],
+            })
+            rows.append(vals)
+        return rows
 
     def _get_purchase_moves(self):
         return self.env["account.move"].search([
@@ -615,14 +661,16 @@ class L10nVeFiscalBookWizard(models.TransientModel):
             fmts["section"])
         row += 1
         headers2 = [
-            "Fecha", "Nº Registro de Máquina", "Sesión",
-            "Primera Orden del Día", "Última Orden del Día",
+            "Fecha", "Nº Registro de Máquina", "Sesión / Origen",
+            "Primer Documento del Día", "Último Documento del Día",
             "Total Gravado", "IVA", "Exento/No Gravado",
         ]
         for col, header in enumerate(headers2):
             sheet.write(row, col, header, fmts["header"])
         row += 1
-        pos_rows = self._get_pos_day_rows(ves)
+        pos_rows = sorted(
+            self._get_pos_day_rows(ves) + self._get_mf_day_rows(ves),
+            key=lambda r: (r["date"], r["machine"]))
         block2 = dict.fromkeys(AMOUNT_KEYS, 0.0)
         for vals in pos_rows:
             taxable = vals["base_16"] + vals["base_8"] + vals["base_31"]

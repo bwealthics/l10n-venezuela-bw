@@ -4,6 +4,26 @@ Todas las modificaciones relevantes de este módulo. El formato sigue
 [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el versionado es
 el de Odoo: `19.0.MAJOR.MINOR.PATCH`, donde `19.0` es la serie de Odoo.
 
+## [19.0.1.3.0] - 2026-11-07
+
+### Corregido
+
+- Los xmlid del plan `account.<compañía>_ve_bw_*` que quedaron con
+  `noupdate=False` (en una base en producción: 7 cuentas, 4 impuestos y el
+  grupo IVA 16 %) pasan a `noupdate=True`, como los deja el cargador de
+  plantillas. Como viven en el módulo `account`, al actualizar `account` Odoo
+  los trataba como huérfanos e intentaba borrarlos al cerrar el `-u`; el grupo
+  IVA 16 % está referenciado por los impuestos y el `DELETE` abortaba la
+  actualización completa.
+- La migración 19.0.1.2.0 buscaba el xmlid por `complete_name`, que no es un
+  campo almacenado, y fallaba con `ValueError`. Ahora busca por `module` +
+  `name`.
+
+### Migración
+
+- `migrations/19.0.1.3.0/post-migration.py` marca `noupdate=True` en esos
+  xmlid. Es idempotente.
+
 ## [19.0.1.2.0] - 2026-09-01
 
 ### Corregido

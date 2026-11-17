@@ -53,9 +53,10 @@ def migrate(cr, version):
                 )
                 continue
 
-            full_xmlid = f"account.{company.id}_{xmlid}"
+            # complete_name no se guarda en la base: buscar por module + name.
             data = env["ir.model.data"].search(
-                [("complete_name", "=", full_xmlid)], limit=1
+                [("module", "=", "account"), ("name", "=", f"{company.id}_{xmlid}")],
+                limit=1,
             )
             legacy = None
             if data and data.model == "account.account" and data.res_id != target.id:

@@ -4,6 +4,16 @@ Todas las modificaciones relevantes de este módulo. El formato sigue
 [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el versionado es
 el de Odoo: `19.0.MAJOR.MINOR.PATCH`, donde `19.0` es la serie de Odoo.
 
+## [19.0.1.6.0] - 2026-10-20
+
+### Añadido
+
+- Libro de Ventas: las facturas de máquina fiscal (canal `mf`) a clientes
+  sin RIF/cédula van al resumen diario del art. 77 (una fila por día y
+  máquina, rango de Nº de control), no por documento. Las NC y las facturas
+  con RIF siguen en el art. 76. Test
+  `test_mf_invoice_without_vat_goes_to_daily_summary`.
+
 ## [19.0.1.5.1] - 2026-10-10
 
 ### Seguridad

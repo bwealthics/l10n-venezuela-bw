@@ -4,6 +4,19 @@ Todas las modificaciones relevantes de este módulo. El formato sigue
 [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el versionado es
 el de Odoo: `19.0.MAJOR.MINOR.PATCH`, donde `19.0` es la serie de Odoo.
 
+## [19.0.4.6.0] - 2026-10-25
+
+### Añadido
+
+- **Anticipo de sueldo** (input `ANTICIPO`, regla `VE_ANTICIPO`, Nómina
+  Regular). Recupera en el recibo un adelanto pagado fuera de él (débito en
+  210501 al pagarlo desde el banco). Disponible en Ajustes salariales: se
+  registra una vez y entra solo al siguiente recibo. Descuenta el neto sin
+  tocar el bruto ni las cotizaciones, y acredita 210501 con el contacto del
+  empleado para cruzarlo contra el anticipo.
+- La pre-migración adopta con su XML-ID el input y la regla creados a mano
+  en una base en producción el 2026-10-25, para no duplicarlos.
+
 ## [19.0.4.5.0] - 2026-10-16
 
 ### Añadido

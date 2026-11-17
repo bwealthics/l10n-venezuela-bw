@@ -36,6 +36,8 @@ RULE_ACCOUNTS = {
     "rule_ve_reg_faov_emp": ("210504", None),
     "rule_ve_reg_islr": ("210507", None),
     "rule_ve_reg_embargo": ("210704", None),
+    # Deducción negativa → acredita 210501 y cruza el anticipo ya pagado.
+    "rule_ve_reg_anticipo": ("210501", None),
     "rule_ve_reg_net": (None, "210501"),
     "rule_ve_reg_ivss_pat": ("610301", "210503"),
     "rule_ve_reg_rpe_pat": ("610303", "210505"),

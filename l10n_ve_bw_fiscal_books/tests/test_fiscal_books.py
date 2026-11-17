@@ -581,6 +581,47 @@ class TestFiscalBooks(AccountTestInvoicingCommon):
             ("l10n_ve_emission_channel", "=", "contingencia"),
         ])), 1)
 
+    def test_mf_invoice_without_vat_goes_to_daily_summary(self):
+        # Art. 77: el ticket de máquina a un no contribuyente (consumidor
+        # final) se resume por día; con RIF sigue por documento (art. 76).
+        mf = self.env["account.journal"].create({
+            "name": "Máquina fiscal de prueba", "code": "MFT",
+            "type": "sale", "company_id": self.company.id,
+            "default_account_id": self.invoice.journal_id.default_account_id.id,
+            "l10n_ve_emission_channel": "mf",
+        })
+        final = self.env["res.partner"].create({"name": "CONSUMIDOR FINAL"})
+        moves = self.env["account.move"]
+        for partner, control in ((final, "00000006"), (final, "00000007"),
+                                 (self.partner, "00000008")):
+            move = self.env["account.move"].with_context(
+                l10n_ve_control_writeback=True).create({
+                    "move_type": "out_invoice",
+                    "partner_id": partner.id,
+                    "invoice_date": self.date_to,
+                    "journal_id": mf.id,
+                    "l10n_ve_control_number": control,
+                    "invoice_line_ids": [Command.create({
+                        "name": "Venta", "quantity": 1.0,
+                        "price_unit": 100.0,
+                        "tax_ids": [Command.set(self.sale_tax.ids)],
+                    })],
+                })
+            move.action_post()
+            moves |= move
+        wizard = self._make_wizard("sale")
+        sale_moves = wizard._get_sale_moves()
+        self.assertNotIn(moves[0], sale_moves)
+        self.assertNotIn(moves[1], sale_moves)
+        self.assertIn(moves[2], sale_moves, "con RIF: por documento")
+        rows = wizard._get_mf_day_rows(wizard._get_ves_currency())
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["first_order"], "00000006")
+        self.assertEqual(rows[0]["last_order"], "00000007")
+        self.assertAlmostEqual(rows[0]["base_16"], 200.0, places=2)
+        self.assertAlmostEqual(rows[0]["tax_16"], 32.0, places=2)
+        self._generate("sale")
+
     def test_sale_book_splits_by_channel(self):
         # PA 102 art. 6: con dos canales en el período el bloque I se parte y
         # cada sub-bloque lleva su propio subtotal.

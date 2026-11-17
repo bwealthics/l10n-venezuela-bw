@@ -55,6 +55,16 @@
         <field name="country_id" ref="base.ve"/>
         <field name="struct_ids" eval="[(4, ref('structure_ve_regular'))]"/>
     </record>
+    <!-- Anticipo/adelanto de sueldo entregado fuera del recibo (débito en
+         210501 al pagarlo): se recupera en el siguiente recibo vía Ajuste
+         salarial, que lo inyecta como input. -->
+    <record id="input_type_anticipo" model="hr.payslip.input.type">
+        <field name="name">Anticipo de Sueldo</field>
+        <field name="code">ANTICIPO</field>
+        <field name="country_id" ref="base.ve"/>
+        <field name="available_in_attachments" eval="True"/>
+        <field name="struct_ids" eval="[(4, ref('structure_ve_regular'))]"/>
+    </record>
     <record id="input_type_util_d" model="hr.payslip.input.type">
         <field name="name">Días de Utilidades</field>
         <field name="code">UTIL_D</field>
